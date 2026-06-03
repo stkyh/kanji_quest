@@ -11,11 +11,11 @@
 <!-- ===== LINEなどでURLを共有したときのプレビュー（OGP） -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="かんじクエスト ⚔️ 漢字バトルゲーム">
-<meta property="og:description" content="漢字バトルでモンスターをやっつけよう！小学1〜6年の よみ・音読み・訓読み・画数クイズ。敵の反撃・コンボ・必殺技・コレクションキャラ！">
+<meta property="og:description" content="漢字バトルでモンスターをやっつけよう！小学1〜6年。えらぶ／✏️手書きで答える。敵の反撃・コンボ・必殺技・コレクションキャラ！">
 <meta property="og:site_name" content="かんじクエスト">
 <!-- <meta property="og:url" content="https://あなたの公開URL"> -->
 <title>かんじクエスト - 漢字バトル</title>
-<!-- design v4: 敵の反撃/コンボ/制限時間/SVGキャラ＋レアリティ（1026字注入ずみ） -->
+<!-- design v6: 手書き例語をやさしく/書き順は回答後/同音異義を熟語で区別/変な文を出さない -->
 <style>
   :root {
     --ink:#1f2438; --muted:#6b7280;
@@ -72,7 +72,7 @@
   .section-title { font-size:12px; font-weight:800; color:var(--muted); margin:16px 0 8px; letter-spacing:.5px; }
 
   .seg { display:flex; gap:4px; background:#eef0f6; border-radius:14px; padding:4px; }
-  .seg button { flex:1; border:none; background:transparent; border-radius:11px; padding:9px 6px; font-size:13px; font-weight:700; color:#6b7280; cursor:pointer; line-height:1.3; transition:.18s; }
+  .seg button { flex:1; border:none; background:transparent; border-radius:11px; padding:9px 4px; font-size:13px; font-weight:700; color:#6b7280; cursor:pointer; line-height:1.3; transition:.18s; }
   .seg button small { display:block; font-size:9.5px; font-weight:600; opacity:.8; margin-top:2px; }
   .seg button.sel { background:#fff; color:var(--accent1); box-shadow:0 4px 12px rgba(124,58,237,.18); }
 
@@ -88,7 +88,6 @@
   .btn-ghost { background:#fff; color:var(--accent1); border:1.5px solid #e7e8f0; box-shadow:none; }
   .mt { margin-top:16px; }
 
-  /* ===== battle field ===== */
   .field {
     position:relative; height:216px; overflow:hidden; margin-bottom:10px;
     border-radius:20px; border:1px solid rgba(255,255,255,.5);
@@ -98,7 +97,6 @@
     box-shadow:inset 0 2px 14px rgba(255,255,255,.5), 0 12px 30px rgba(8,10,30,.35);
   }
   .field::after { content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 30%, transparent 55%, rgba(10,12,40,.18)); pointer-events:none; }
-
   .sprite-wrap { position:absolute; display:flex; flex-direction:column; align-items:center; z-index:2; }
   .enemy-wrap { top:18px; right:26px; }
   .player-wrap { bottom:14px; left:22px; }
@@ -151,7 +149,6 @@
   .skill-burst { position:absolute; left:312px; top:14px; font-size:66px; z-index:6; animation:burstPop .6s forwards; }
   @keyframes burstPop { 0%{transform:scale(0); opacity:1} 55%{transform:scale(1.7)} 100%{transform:scale(2.3); opacity:0} }
 
-  /* ===== gauge + skill button ===== */
   .skillbar { display:flex; align-items:center; gap:10px; background:rgba(8,10,25,.4); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:8px 12px; margin-bottom:10px; }
   .gauge-wrap { display:flex; flex-direction:column; gap:4px; }
   .gauge-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.7); }
@@ -165,7 +162,6 @@
   .skill-btn.ready { color:#3a2400; background:linear-gradient(135deg,var(--gold),var(--gold2)); animation:pulse 1.25s infinite; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(251,191,36,.55)} 70%{box-shadow:0 0 0 12px rgba(251,191,36,0)} 100%{box-shadow:0 0 0 0 rgba(251,191,36,0)} }
 
-  /* ===== quiz panel ===== */
   .panel { background:var(--card); border-radius:20px; padding:16px; min-height:186px; box-shadow:0 12px 30px rgba(8,10,30,.35); border:1px solid rgba(255,255,255,.6); }
   .timer { height:7px; background:#e5e7ef; border-radius:999px; overflow:hidden; margin-bottom:10px; box-shadow:inset 0 1px 2px rgba(0,0,0,.12); }
   .timer > div { height:100%; width:100%; border-radius:999px; background:linear-gradient(90deg,#34d399,#10b981); transition:width .1s linear, background .3s; }
@@ -182,13 +178,27 @@
   .choice.correct { background:linear-gradient(135deg,var(--good1),var(--good2)); color:#fff; border-color:transparent; box-shadow:0 8px 18px rgba(16,185,129,.35); }
   .choice.wrong { background:linear-gradient(135deg,var(--bad1),var(--bad2)); color:#fff; border-color:transparent; box-shadow:0 8px 18px rgba(239,68,68,.35); }
 
+  /* ===== 手書きパッド ===== */
+  .write-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .pad { width:100%; height:190px; background:#fff; border:2px dashed #cbd5e1; border-radius:16px; touch-action:none; box-shadow:inset 0 2px 10px rgba(0,0,0,.05); cursor:crosshair; }
+  .write-controls { display:flex; gap:10px; width:100%; }
+  .write-controls button { flex:1; border:none; border-radius:13px; padding:13px; font-weight:800; font-size:15px; cursor:pointer; }
+  .wc-clear { background:#eef0f6; color:#6b7280; }
+  .wc-submit { background:var(--grad-primary); color:#fff; box-shadow:0 8px 18px rgba(124,58,237,.3); }
+  .wc-submit:disabled { opacity:.55; }
+  .recog-info { font-size:13px; color:var(--muted); min-height:20px; text-align:center; font-weight:600; }
+  .recog-info b { color:var(--ink); font-size:18px; }
+  .fallback-btns { display:flex; gap:8px; justify-content:center; margin-top:6px; }
+  .fallback-btns button { border:none; border-radius:11px; padding:9px 18px; font-weight:800; cursor:pointer; color:#fff; }
+  .fb-ok { background:linear-gradient(135deg,var(--good1),var(--good2)); }
+  .fb-ng { background:linear-gradient(135deg,var(--bad1),var(--bad2)); }
+
   .result-card { text-align:center; }
   .result-card .emoji { font-size:66px; filter:drop-shadow(0 8px 10px rgba(0,0,0,.2)); }
   .result-card h2 { margin:8px 0; font-size:22px; }
   .result-card .stats { font-size:14px; line-height:1.9; margin:12px 0; color:#374151; }
   .reward { color:#b45309; font-weight:800; }
 
-  /* ===== shop ===== */
   .shop-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
   .shop-head h2 { color:#fff; font-size:19px; }
   .shop-tabs { display:flex; gap:6px; margin-bottom:10px; background:rgba(8,10,25,.35); border-radius:14px; padding:4px; }
@@ -208,15 +218,32 @@
   .shop-item .buy.equipped { background:linear-gradient(135deg,var(--good1),var(--good2)); color:#fff; }
   .shop-foot { display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
 
-  /* ===== avatar medallion ===== */
   .medallion { position:relative; width:52px; height:52px; border-radius:50%; display:grid; place-items:center; overflow:hidden; flex:none;
     background:radial-gradient(circle at 50% 30%, #ffffff, #e9ecf8);
     box-shadow:0 4px 10px rgba(8,10,30,.22), inset 0 0 0 3px var(--rar,#cbd5e1); }
   .medallion svg { width:46px; height:46px; }
-  .medallion.lg { width:58px; height:58px; } .medallion.lg svg { width:52px; height:52px; }
   .medallion.sm { width:34px; height:34px; box-shadow:0 2px 6px rgba(0,0,0,.25), inset 0 0 0 2px var(--rar,#cbd5e1); } .medallion.sm svg { width:30px; height:30px; }
   .rar-common { --rar:#cbd5e1; } .rar-rare { --rar:#3b82f6; } .rar-epic { --rar:#a855f7; }
   .rar-legend { --rar:#f59e0b; box-shadow:0 0 14px rgba(245,158,11,.55), inset 0 0 0 3px #f59e0b; }
+
+  /* 書き順ボタン */
+  .wc-order { background:#eef0f6; color:#7c3aed; flex:0 0 auto !important; padding-left:14px; padding-right:14px; }
+  /* 書き順モーダル */
+  .modal { display:none; position:fixed; inset:0; z-index:50; background:rgba(8,10,25,.6); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:18px; }
+  .modal.show { display:flex; }
+  .modal-card { background:#fff; border-radius:22px; padding:18px; width:100%; max-width:340px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.5); animation:fade .25s ease; }
+  .modal-title { font-size:18px; font-weight:800; color:var(--ink); margin-bottom:10px; }
+  .modal-title b { font-size:26px; }
+  .stroke-stage { width:240px; height:240px; margin:0 auto 14px; border-radius:16px; background:
+      linear-gradient(#fff,#fff) padding-box,
+      repeating-linear-gradient(0deg,transparent 0 119px,#e2e8f0 119px 120px),
+      repeating-linear-gradient(90deg,transparent 0 119px,#e2e8f0 119px 120px);
+    border:2px dashed #cbd5e1; position:relative; display:grid; place-items:center; }
+  .stroke-stage svg { width:100%; height:100%; }
+  .stroke-stage .ghost { stroke:#e5e7ef; }
+  .stroke-stage .ink { stroke:#1f2438; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns .btn-primary { padding:11px; font-size:15px; }
 </style>
 </head>
 <body>
@@ -231,10 +258,11 @@
     </div>
     <div class="card menu-card">
       <p>漢字の問題にこたえて<br>モンスターをやっつけよう！</p>
-      <div class="section-title">むずかしさ</div>
+      <div class="section-title">モードをえらぶ</div>
       <div class="seg" id="modeSeg">
-        <button class="sel" data-mode="easy">やさしい<small>よみ・時間ゆったり</small></button>
-        <button data-mode="hard">むずかしい<small>全種類・敵つよい</small></button>
+        <button class="sel" data-mode="easy">やさしい<small>よみ・4たく</small></button>
+        <button data-mode="hard">むずかしい<small>音訓・画数・4たく</small></button>
+        <button data-mode="write">✏️てがき<small>書いてこたえる</small></button>
       </div>
       <div class="section-title">がくねんをえらんでスタート</div>
       <div class="grade-btns" id="gradeBtns"></div>
@@ -289,7 +317,18 @@
         <div class="quiz-main" id="quizMain"></div>
         <div class="quiz-hint" id="quizHint"></div>
         <div class="choices" id="choices"></div>
+        <div id="writeArea" style="display:none;">
+          <div class="write-wrap">
+            <canvas id="padCanvas" class="pad"></canvas>
+            <div class="write-controls">
+              <button class="wc-clear" id="clearBtn">けす</button>
+              <button class="wc-submit" id="submitWriteBtn">こたえる ✏️</button>
+            </div>
+            <div class="recog-info" id="recogInfo"></div>
+          </div>
+        </div>
       </div>
+      <button class="btn-primary btn-ghost" id="afterOrderBtn" style="display:none;">✍️ 書き順をみる</button>
       <button class="btn-primary" id="nextBtn" style="display:none;">つぎへ ▶</button>
     </div>
   </div>
@@ -319,6 +358,18 @@
       <button class="btn-primary btn-ghost" id="shopBackBtn" style="width:auto; padding:9px 20px;">もどる</button>
     </div>
   </div>
+
+  <!-- ===== 書き順モーダル ===== -->
+  <div id="strokeModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-title" id="strokeTitle">書き順</div>
+      <div class="stroke-stage" id="strokeStage"></div>
+      <div class="modal-btns">
+        <button class="btn-primary btn-ghost" id="strokeReplay">もう一回 ▶</button>
+        <button class="btn-primary" id="strokeClose">とじる</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -327,1048 +378,1045 @@
    ========================================================= */
 const KANJI_DATA = {
   1: [
-    {k:"一", on:"イチ", kun:"ひと", s:1},
-    {k:"二", on:"ニ", kun:"ふた", s:2},
-    {k:"九", on:"ク", kun:"ここの", s:2},
-    {k:"七", on:"シチ", kun:"なな", s:2},
-    {k:"人", on:"ニン", kun:"ひと", s:2},
-    {k:"入", on:"ニュウ", kun:"はい(る)", s:2},
-    {k:"八", on:"ハチ", kun:"や", s:2},
-    {k:"力", on:"リョク", kun:"ちから", s:2},
-    {k:"十", on:"ジュウ", kun:"とお", s:2},
-    {k:"三", on:"サン", kun:"み", s:3},
-    {k:"上", on:"ジョウ", kun:"うえ", s:3},
-    {k:"下", on:"カ", kun:"した", s:3},
-    {k:"口", on:"コウ", kun:"くち", s:3},
-    {k:"大", on:"タイ", kun:"おお", s:3},
-    {k:"女", on:"ジョ", kun:"おんな", s:3},
-    {k:"山", on:"サン", kun:"やま", s:3},
-    {k:"川", on:"セン", kun:"かわ", s:3},
-    {k:"土", on:"ド", kun:"つち", s:3},
-    {k:"千", on:"セン", kun:"ち", s:3},
-    {k:"夕", on:"セキ", kun:"ゆう", s:3},
-    {k:"子", on:"シ", kun:"こ", s:3},
-    {k:"小", on:"ショウ", kun:"ちい(さい)", s:3},
-    {k:"中", on:"チュウ", kun:"なか", s:4},
-    {k:"五", on:"ゴ", kun:"いつ", s:4},
-    {k:"六", on:"ロク", kun:"む", s:4},
-    {k:"円", on:"エン", kun:"まる(い)", s:4},
-    {k:"天", on:"テン", kun:"あま", s:4},
-    {k:"手", on:"シュ", kun:"て", s:4},
-    {k:"文", on:"ブン", kun:"", s:4},
-    {k:"日", on:"ニチ", kun:"ひ", s:4},
-    {k:"月", on:"ゲツ", kun:"つき", s:4},
-    {k:"木", on:"モク", kun:"き", s:4},
-    {k:"水", on:"スイ", kun:"みず", s:4},
-    {k:"火", on:"カ", kun:"ひ", s:4},
-    {k:"犬", on:"ケン", kun:"いぬ", s:4},
-    {k:"王", on:"オウ", kun:"", s:4},
-    {k:"出", on:"シュツ", kun:"で(る)", s:5},
-    {k:"右", on:"^ウ", kun:"みぎ", s:5},
-    {k:"四", on:"シ", kun:"よん", s:5},
-    {k:"左", on:"サ", kun:"ひだり", s:5},
-    {k:"本", on:"ホン", kun:"もと", s:5},
-    {k:"正", on:"セイ", kun:"ただ(しい)", s:5},
-    {k:"玉", on:"ギョク", kun:"たま", s:5},
-    {k:"田", on:"デン", kun:"た", s:5},
-    {k:"白", on:"ハク", kun:"しろ", s:5},
-    {k:"目", on:"モク", kun:"め", s:5},
-    {k:"石", on:"セキ", kun:"いし", s:5},
-    {k:"立", on:"リツ", kun:"た(つ)", s:5},
-    {k:"休", on:"キュウ", kun:"やす(む)", s:6},
-    {k:"先", on:"セン", kun:"さき", s:6},
-    {k:"名", on:"メイ", kun:"な", s:6},
-    {k:"字", on:"ジ", kun:"", s:6},
-    {k:"年", on:"ネン", kun:"とし", s:6},
-    {k:"早", on:"ソウ", kun:"はや(い)", s:6},
-    {k:"気", on:"キ", kun:"いき", s:6},
-    {k:"百", on:"ヒャク", kun:"もも", s:6},
-    {k:"竹", on:"チク", kun:"たけ", s:6},
-    {k:"糸", on:"シ", kun:"いと", s:6},
-    {k:"耳", on:"ジ", kun:"みみ", s:6},
-    {k:"虫", on:"チュウ", kun:"むし", s:6},
-    {k:"村", on:"ソン", kun:"むら", s:7},
-    {k:"男", on:"ダン", kun:"おとこ", s:7},
-    {k:"町", on:"チョウ", kun:"まち", s:7},
-    {k:"花", on:"カ", kun:"はな", s:7},
-    {k:"見", on:"ケン", kun:"み(る)", s:7},
+    {k:"一", on:"イチ", kun:"ひと", s:1, ew:"一人", er:"ひとり", p:"n"},
+    {k:"二", on:"ニ", kun:"ふた", s:2, ew:"二人", er:"ふたり", p:"n"},
+    {k:"九", on:"ク", kun:"ここの", s:2, ew:"九九", er:"くく", p:"n"},
+    {k:"七", on:"シチ", kun:"なな", s:2, ew:"七", er:"しち", p:"o"},
+    {k:"人", on:"ニン", kun:"ひと", s:2, ew:"一人", er:"ひとり", p:"n"},
+    {k:"入", on:"ニュウ", kun:"はい(る)", s:2, ew:"入手", er:"にゅうしゅ", p:"n"},
+    {k:"八", on:"ハチ", kun:"や", s:2, ew:"八方", er:"はっぽう", p:"n"},
+    {k:"力", on:"リョク", kun:"ちから", s:2, ew:"力", er:"ちから", p:"n"},
+    {k:"十", on:"ジュウ", kun:"とお", s:2, ew:"十分", er:"じゅうぶん", p:"n"},
+    {k:"三", on:"サン", kun:"み", s:3, ew:"三角", er:"さんかく", p:"n"},
+    {k:"上", on:"ジョウ", kun:"うえ", s:3, ew:"上手", er:"じょうず", p:"n"},
+    {k:"下", on:"カ", kun:"した", s:3, ew:"地下", er:"ちか", p:"n"},
+    {k:"口", on:"コウ", kun:"くち", s:3, ew:"口", er:"くち", p:"n"},
+    {k:"大", on:"タイ", kun:"おお", s:3, ew:"大学", er:"だいがく", p:"n"},
+    {k:"女", on:"ジョ", kun:"おんな", s:3, ew:"少女", er:"しょうじょ", p:"n"},
+    {k:"山", on:"サン", kun:"やま", s:3, ew:"山", er:"やま", p:"n"},
+    {k:"川", on:"セン", kun:"かわ", s:3, ew:"小川", er:"おがわ", p:"n"},
+    {k:"土", on:"ド", kun:"つち", s:3, ew:"土地", er:"とち", p:"n"},
+    {k:"千", on:"セン", kun:"ち", s:3, ew:"何千", er:"なんぜん", p:"n"},
+    {k:"夕", on:"セキ", kun:"ゆう", s:3, ew:"夕食", er:"ゆうしょく", p:"n"},
+    {k:"子", on:"シ", kun:"こ", s:3, ew:"王子", er:"おうじ", p:"n"},
+    {k:"小", on:"ショウ", kun:"ちい(さい)", s:3, ew:"小さな", er:"ちいさな", p:"o"},
+    {k:"中", on:"チュウ", kun:"なか", s:4, ew:"中国", er:"ちゅうごく", p:"n"},
+    {k:"五", on:"ゴ", kun:"いつ", s:4, ew:"五体", er:"ごたい", p:"n"},
+    {k:"六", on:"ロク", kun:"む", s:4, ew:"六", er:"ろく", p:"o"},
+    {k:"円", on:"エン", kun:"まる(い)", s:4, ew:"円形", er:"えんけい", p:"n"},
+    {k:"天", on:"テン", kun:"あま", s:4, ew:"天国", er:"てんごく", p:"n"},
+    {k:"手", on:"シュ", kun:"て", s:4, ew:"上手", er:"じょうず", p:"n"},
+    {k:"文", on:"ブン", kun:"", s:4, ew:"文字", er:"もじ", p:"n"},
+    {k:"日", on:"ニチ", kun:"ひ", s:4, ew:"日本", er:"にほん", p:"n"},
+    {k:"月", on:"ゲツ", kun:"つき", s:4, ew:"月", er:"つき", p:"n"},
+    {k:"木", on:"モク", kun:"き", s:4, ew:"木曜", er:"もくよう", p:"n"},
+    {k:"水", on:"スイ", kun:"みず", s:4, ew:"水", er:"みず", p:"n"},
+    {k:"火", on:"カ", kun:"ひ", s:4, ew:"花火", er:"はなび", p:"n"},
+    {k:"犬", on:"ケン", kun:"いぬ", s:4, ew:"犬", er:"いぬ", p:"n"},
+    {k:"王", on:"オウ", kun:"", s:4, ew:"王子", er:"おうじ", p:"n"},
+    {k:"出", on:"シュツ", kun:"で(る)", s:5, ew:"出来", er:"しゅったい", p:"n"},
+    {k:"右", on:"^ウ", kun:"みぎ", s:5, ew:"右", er:"みぎ", p:"n"},
+    {k:"四", on:"シ", kun:"よん", s:5, ew:"四角", er:"しかく", p:"n"},
+    {k:"左", on:"サ", kun:"ひだり", s:5, ew:"左手", er:"ひだりて", p:"n"},
+    {k:"本", on:"ホン", kun:"もと", s:5, ew:"本気", er:"ほんき", p:"n"},
+    {k:"正", on:"セイ", kun:"ただ(しい)", s:5, ew:"正直", er:"しょうじき", p:"n"},
+    {k:"玉", on:"ギョク", kun:"たま", s:5, ew:"目玉", er:"めだま", p:"n"},
+    {k:"田", on:"デン", kun:"た", s:5, ew:"水田", er:"すいでん", p:"n"},
+    {k:"白", on:"ハク", kun:"しろ", s:5, ew:"白人", er:"はくじん", p:"n"},
+    {k:"目", on:"モク", kun:"め", s:5, ew:"一目", er:"ひとめ", p:"n"},
+    {k:"石", on:"セキ", kun:"いし", s:5, ew:"石", er:"いし", p:"n"},
+    {k:"立", on:"リツ", kun:"た(つ)", s:5, ew:"立場", er:"たちば", p:"n"},
+    {k:"休", on:"キュウ", kun:"やす(む)", s:6, ew:"休み", er:"やすみ", p:"n"},
+    {k:"先", on:"セン", kun:"さき", s:6, ew:"先生", er:"せんせい", p:"n"},
+    {k:"名", on:"メイ", kun:"な", s:6, ew:"名前", er:"なまえ", p:"n"},
+    {k:"字", on:"ジ", kun:"", s:6, ew:"文字", er:"もじ", p:"n"},
+    {k:"年", on:"ネン", kun:"とし", s:6, ew:"少年", er:"しょうねん", p:"n"},
+    {k:"早", on:"ソウ", kun:"はや(い)", s:6, ew:"早", er:"はや", p:"n"},
+    {k:"気", on:"キ", kun:"いき", s:6, ew:"本気", er:"ほんき", p:"n"},
+    {k:"百", on:"ヒャク", kun:"もも", s:6, ew:"何百", er:"なんびゃく", p:"n"},
+    {k:"竹", on:"チク", kun:"たけ", s:6, ew:"竹林", er:"ちくりん", p:"n"},
+    {k:"糸", on:"シ", kun:"いと", s:6, ew:"糸口", er:"いとぐち", p:"n"},
+    {k:"耳", on:"ジ", kun:"みみ", s:6, ew:"耳", er:"みみ", p:"n"},
+    {k:"虫", on:"チュウ", kun:"むし", s:6, ew:"虫", er:"むし", p:"n"},
+    {k:"村", on:"ソン", kun:"むら", s:7, ew:"村", er:"むら", p:"n"},
+    {k:"男", on:"ダン", kun:"おとこ", s:7, ew:"男", er:"おとこ", p:"n"},
+    {k:"町", on:"チョウ", kun:"まち", s:7, ew:"町", er:"まち", p:"n"},
+    {k:"花", on:"カ", kun:"はな", s:7, ew:"花火", er:"はなび", p:"n"},
+    {k:"見", on:"ケン", kun:"み(る)", s:7, ew:"見かけ", er:"みかけ", p:"n"},
     {k:"貝", on:"バイ", kun:"かい", s:7},
-    {k:"赤", on:"セキ", kun:"あか", s:7},
-    {k:"足", on:"ソク", kun:"あし", s:7},
-    {k:"車", on:"シャ", kun:"くるま", s:7},
-    {k:"学", on:"ガク", kun:"まな(ぶ)", s:8},
-    {k:"林", on:"リン", kun:"はやし", s:8},
-    {k:"空", on:"クウ", kun:"そら", s:8},
-    {k:"金", on:"キン", kun:"かね", s:8},
-    {k:"雨", on:"ウ", kun:"あめ", s:8},
-    {k:"青", on:"セイ", kun:"あお", s:8},
-    {k:"草", on:"ソウ", kun:"くさ", s:9},
-    {k:"音", on:"オン", kun:"おと", s:9},
-    {k:"校", on:"コウ", kun:"", s:10},
-    {k:"森", on:"シン", kun:"もり", s:12},
-    {k:"生", on:"セイ", kun:"い(きる)", s:5},
+    {k:"赤", on:"セキ", kun:"あか", s:7, ew:"赤", er:"あか", p:"n"},
+    {k:"足", on:"ソク", kun:"あし", s:7, ew:"足", er:"あし", p:"n"},
+    {k:"車", on:"シャ", kun:"くるま", s:7, ew:"車", er:"くるま", p:"n"},
+    {k:"学", on:"ガク", kun:"まな(ぶ)", s:8, ew:"学校", er:"がっこう", p:"n"},
+    {k:"林", on:"リン", kun:"はやし", s:8, ew:"森林", er:"しんりん", p:"n"},
+    {k:"空", on:"クウ", kun:"そら", s:8, ew:"空", er:"そら", p:"n"},
+    {k:"金", on:"キン", kun:"かね", s:8, ew:"金", er:"かね", p:"n"},
+    {k:"雨", on:"ウ", kun:"あめ", s:8, ew:"雨", er:"あめ", p:"n"},
+    {k:"青", on:"セイ", kun:"あお", s:8, ew:"青", er:"あお", p:"n"},
+    {k:"草", on:"ソウ", kun:"くさ", s:9, ew:"草", er:"くさ", p:"n"},
+    {k:"音", on:"オン", kun:"おと", s:9, ew:"音", er:"おと", p:"n"},
+    {k:"校", on:"コウ", kun:"", s:10, ew:"学校", er:"がっこう", p:"n"},
+    {k:"森", on:"シン", kun:"もり", s:12, ew:"森", er:"もり", p:"n"},
+    {k:"生", on:"セイ", kun:"い(きる)", s:5, ew:"生まれ", er:"うまれ", p:"n"},
   ],
   2: [
-    {k:"工", on:"コウ", kun:"", s:3},
-    {k:"刀", on:"トウ", kun:"かたな", s:2},
-    {k:"丸", on:"ガン", kun:"まる", s:3},
-    {k:"才", on:"サイ", kun:"", s:3},
-    {k:"万", on:"マン", kun:"", s:3},
-    {k:"今", on:"コン", kun:"いま", s:4},
-    {k:"元", on:"ゲン", kun:"もと", s:4},
-    {k:"公", on:"コウ", kun:"", s:4},
-    {k:"内", on:"ナイ", kun:"うち", s:4},
-    {k:"分", on:"ブン", kun:"わ(ける)", s:4},
-    {k:"切", on:"セツ", kun:"き(る)", s:4},
-    {k:"午", on:"ゴ", kun:"", s:4},
-    {k:"友", on:"ユウ", kun:"とも", s:4},
-    {k:"太", on:"タイ", kun:"ふと(い)", s:4},
-    {k:"少", on:"ショウ", kun:"すこ(し)", s:4},
-    {k:"引", on:"イン", kun:"ひ(く)", s:4},
-    {k:"心", on:"シン", kun:"こころ", s:4},
-    {k:"戸", on:"コ", kun:"と", s:4},
-    {k:"方", on:"ホウ", kun:"かた", s:4},
-    {k:"牛", on:"ギュウ", kun:"うし", s:4},
-    {k:"父", on:"フ", kun:"ちち", s:4},
-    {k:"毛", on:"モウ", kun:"け", s:4},
-    {k:"止", on:"シ", kun:"と(まる)", s:4},
-    {k:"兄", on:"キョウ", kun:"あに", s:5},
-    {k:"冬", on:"トウ", kun:"ふゆ", s:5},
-    {k:"北", on:"ホク", kun:"きた", s:5},
-    {k:"半", on:"ハン", kun:"なか(ば)", s:5},
-    {k:"古", on:"コ", kun:"ふる(い)", s:5},
-    {k:"台", on:"ダイ", kun:"", s:5},
-    {k:"外", on:"ガイ", kun:"そと", s:5},
-    {k:"市", on:"シ", kun:"いち", s:5},
-    {k:"広", on:"コウ", kun:"ひろ(い)", s:5},
-    {k:"母", on:"ボ", kun:"はは", s:5},
-    {k:"用", on:"ヨウ", kun:"もち(いる)", s:5},
-    {k:"矢", on:"シ", kun:"や", s:5},
-    {k:"交", on:"コウ", kun:"まじ(わる)", s:6},
-    {k:"会", on:"カイ", kun:"あ(う)", s:6},
-    {k:"光", on:"コウ", kun:"ひかり", s:6},
-    {k:"同", on:"ドウ", kun:"おな(じ)", s:6},
-    {k:"回", on:"カイ", kun:"まわ(る)", s:6},
-    {k:"多", on:"タ", kun:"おお(い)", s:6},
-    {k:"当", on:"トウ", kun:"あ(たる)", s:6},
-    {k:"毎", on:"マイ", kun:"ごと", s:6},
-    {k:"池", on:"チ", kun:"いけ", s:6},
-    {k:"米", on:"ベイ", kun:"こめ", s:6},
-    {k:"羽", on:"ウ", kun:"はね", s:6},
-    {k:"考", on:"コウ", kun:"かんが(える)", s:6},
-    {k:"肉", on:"ニク", kun:"", s:6},
-    {k:"自", on:"ジ", kun:"", s:6},
-    {k:"色", on:"シキ", kun:"いろ", s:6},
-    {k:"行", on:"コウ", kun:"い(く)", s:6},
-    {k:"西", on:"セイ", kun:"にし", s:6},
-    {k:"何", on:"カ", kun:"なに", s:7},
-    {k:"体", on:"タイ", kun:"からだ", s:7},
-    {k:"作", on:"サク", kun:"つく(る)", s:7},
-    {k:"図", on:"ズ", kun:"え", s:7},
-    {k:"声", on:"セイ", kun:"こえ", s:7},
-    {k:"売", on:"バイ", kun:"う(る)", s:7},
-    {k:"弟", on:"ダイ", kun:"おとうと", s:7},
-    {k:"形", on:"ケイ", kun:"かた", s:7},
-    {k:"来", on:"ライ", kun:"く(る)", s:7},
-    {k:"社", on:"シャ", kun:"やしろ", s:7},
-    {k:"角", on:"カク", kun:"かど", s:7},
-    {k:"言", on:"ゲン", kun:"い(う)", s:7},
-    {k:"谷", on:"コク", kun:"たに", s:7},
-    {k:"走", on:"ソウ", kun:"はし(る)", s:7},
-    {k:"近", on:"キン", kun:"ちか(い)", s:7},
-    {k:"里", on:"リ", kun:"さと", s:7},
-    {k:"麦", on:"バク", kun:"むぎ", s:7},
-    {k:"地", on:"チ", kun:"", s:6},
-    {k:"京", on:"キョウ", kun:"みやこ", s:8},
-    {k:"国", on:"コク", kun:"くに", s:8},
-    {k:"夜", on:"ヤ", kun:"よ", s:8},
-    {k:"妹", on:"マイ", kun:"いもうと", s:8},
-    {k:"姉", on:"シ", kun:"お", s:8},
-    {k:"店", on:"テン", kun:"みせ", s:8},
-    {k:"明", on:"メイ", kun:"あ(かり)", s:8},
-    {k:"東", on:"トウ", kun:"ひがし", s:8},
-    {k:"歩", on:"ホ", kun:"ある(く)", s:8},
-    {k:"画", on:"ガ", kun:"", s:8},
-    {k:"直", on:"チョク", kun:"なお(す)", s:8},
-    {k:"知", on:"チ", kun:"し(る)", s:8},
-    {k:"長", on:"チョウ", kun:"なが(い)", s:8},
-    {k:"前", on:"ゼン", kun:"まえ", s:9},
-    {k:"南", on:"ナン", kun:"みなみ", s:9},
-    {k:"室", on:"シツ", kun:"", s:9},
-    {k:"後", on:"ゴ", kun:"うし(ろ)", s:9},
-    {k:"思", on:"シ", kun:"おも(う)", s:9},
-    {k:"星", on:"セイ", kun:"ほし", s:9},
-    {k:"活", on:"カツ", kun:"い(きる)", s:9},
-    {k:"海", on:"カイ", kun:"うみ", s:9},
-    {k:"点", on:"テン", kun:"つ(ける)", s:9},
-    {k:"科", on:"カ", kun:"", s:9},
-    {k:"茶", on:"チャ", kun:"", s:9},
-    {k:"食", on:"ショク", kun:"た(べる)", s:9},
-    {k:"首", on:"シュ", kun:"くび", s:9},
-    {k:"夏", on:"ゲ", kun:"なつ", s:10},
-    {k:"家", on:"カ", kun:"いえ", s:10},
-    {k:"弱", on:"ジャク", kun:"よわ(い)", s:10},
-    {k:"時", on:"ジ", kun:"とき", s:10},
-    {k:"紙", on:"シ", kun:"かみ", s:10},
-    {k:"記", on:"キ", kun:"しる(す)", s:10},
-    {k:"通", on:"ツウ", kun:"とお(る)", s:10},
-    {k:"高", on:"コウ", kun:"たか(い)", s:10},
-    {k:"強", on:"キョウ", kun:"つよ(い)", s:11},
-    {k:"教", on:"キョウ", kun:"おし(える)", s:11},
-    {k:"理", on:"リ", kun:"ことわり", s:11},
-    {k:"組", on:"ソ", kun:"くみ", s:11},
-    {k:"船", on:"セン", kun:"ふね", s:11},
-    {k:"週", on:"シュウ", kun:"", s:11},
-    {k:"雪", on:"セツ", kun:"ゆき", s:11},
-    {k:"魚", on:"ギョ", kun:"さかな", s:11},
-    {k:"鳥", on:"チョウ", kun:"とり", s:11},
-    {k:"黄", on:"オウ", kun:"き", s:11},
-    {k:"黒", on:"コク", kun:"くろ", s:11},
-    {k:"馬", on:"バ", kun:"うま", s:10},
-    {k:"場", on:"ジョウ", kun:"ば", s:12},
-    {k:"朝", on:"チョウ", kun:"あさ", s:12},
-    {k:"番", on:"バン", kun:"", s:12},
-    {k:"答", on:"トウ", kun:"こた(える)", s:12},
-    {k:"絵", on:"エ", kun:"", s:12},
-    {k:"買", on:"バイ", kun:"か(う)", s:12},
-    {k:"道", on:"ドウ", kun:"みち", s:12},
-    {k:"間", on:"カン", kun:"あいだ", s:12},
-    {k:"雲", on:"ウン", kun:"くも", s:12},
-    {k:"数", on:"スウ", kun:"かぞ(える)", s:13},
-    {k:"楽", on:"ラク", kun:"たの(しい)", s:13},
-    {k:"話", on:"ワ", kun:"はな(す)", s:13},
-    {k:"電", on:"デン", kun:"", s:13},
-    {k:"歌", on:"カ", kun:"うた", s:14},
-    {k:"算", on:"サン", kun:"そろ", s:14},
-    {k:"聞", on:"ブン", kun:"き(く)", s:14},
-    {k:"語", on:"ゴ", kun:"かた(る)", s:14},
-    {k:"読", on:"トウ", kun:"よ(む)", s:14},
-    {k:"鳴", on:"メイ", kun:"な(く)", s:14},
-    {k:"線", on:"セン", kun:"", s:15},
-    {k:"親", on:"シン", kun:"おや", s:16},
-    {k:"頭", on:"ズ", kun:"あたま", s:16},
-    {k:"顔", on:"ガン", kun:"かお", s:18},
-    {k:"野", on:"ヤ", kun:"の", s:11},
-    {k:"合", on:"ゴウ", kun:"あ(う)", s:6},
-    {k:"風", on:"フウ", kun:"かぜ", s:9},
-    {k:"新", on:"シン", kun:"あたら(しい)", s:13},
-    {k:"寺", on:"ジ", kun:"てら", s:6},
-    {k:"岩", on:"ガン", kun:"いわ", s:8},
-    {k:"帰", on:"キ", kun:"かえ(る)", s:10},
-    {k:"春", on:"シュン", kun:"はる", s:9},
-    {k:"昼", on:"チュウ", kun:"ひる", s:9},
-    {k:"晴", on:"セイ", kun:"は(れる)", s:12},
-    {k:"秋", on:"シュウ", kun:"あき", s:9},
-    {k:"計", on:"ケイ", kun:"はか(る)", s:9},
-    {k:"園", on:"エン", kun:"", s:13},
-    {k:"曜", on:"ヨウ", kun:"", s:18},
-    {k:"書", on:"ショ", kun:"か(く)", s:10},
-    {k:"遠", on:"エン", kun:"とお(い)", s:13},
-    {k:"門", on:"モン", kun:"", s:8},
-    {k:"原", on:"ゲン", kun:"はら", s:10},
-    {k:"細", on:"サイ", kun:"ほそ(い)", s:11},
-    {k:"弓", on:"キュウ", kun:"ゆみ", s:3},
-    {k:"汽", on:"キ", kun:"", s:7},
+    {k:"工", on:"コウ", kun:"", s:3, ew:"工作", er:"こうさく", p:"n"},
+    {k:"刀", on:"トウ", kun:"かたな", s:2, ew:"刀", er:"かたな", p:"n"},
+    {k:"丸", on:"ガン", kun:"まる", s:3, ew:"丸太", er:"まるた", p:"n"},
+    {k:"才", on:"サイ", kun:"", s:3, ew:"天才", er:"てんさい", p:"n"},
+    {k:"万", on:"マン", kun:"", s:3, ew:"万", er:"まん", p:"n"},
+    {k:"今", on:"コン", kun:"いま", s:4, ew:"今日", er:"きょう", p:"n"},
+    {k:"元", on:"ゲン", kun:"もと", s:4, ew:"元気", er:"げんき", p:"n"},
+    {k:"公", on:"コウ", kun:"", s:4, ew:"公園", er:"こうえん", p:"n"},
+    {k:"内", on:"ナイ", kun:"うち", s:4, ew:"家内", er:"かない", p:"n"},
+    {k:"分", on:"ブン", kun:"わ(ける)", s:4, ew:"気分", er:"きぶん", p:"n"},
+    {k:"切", on:"セツ", kun:"き(る)", s:4, ew:"親切", er:"しんせつ", p:"n"},
+    {k:"午", on:"ゴ", kun:"", s:4, ew:"午後", er:"ごご", p:"n"},
+    {k:"友", on:"ユウ", kun:"とも", s:4, ew:"友人", er:"ゆうじん", p:"n"},
+    {k:"太", on:"タイ", kun:"ふと(い)", s:4, ew:"太もも", er:"ふともも", p:"n"},
+    {k:"少", on:"ショウ", kun:"すこ(し)", s:4, ew:"少年", er:"しょうねん", p:"n"},
+    {k:"引", on:"イン", kun:"ひ(く)", s:4, ew:"引用", er:"いんよう", p:"n"},
+    {k:"心", on:"シン", kun:"こころ", s:4, ew:"心", er:"こころ", p:"n"},
+    {k:"戸", on:"コ", kun:"と", s:4, ew:"木戸", er:"きど", p:"n"},
+    {k:"方", on:"ホウ", kun:"かた", s:4, ew:"行方", er:"ゆくえ", p:"n"},
+    {k:"牛", on:"ギュウ", kun:"うし", s:4, ew:"牛", er:"うし", p:"n"},
+    {k:"父", on:"フ", kun:"ちち", s:4, ew:"父親", er:"ちちおや", p:"n"},
+    {k:"毛", on:"モウ", kun:"け", s:4, ew:"毛糸", er:"けいと", p:"n"},
+    {k:"止", on:"シ", kun:"と(まる)", s:4, ew:"中止", er:"ちゅうし", p:"n"},
+    {k:"兄", on:"キョウ", kun:"あに", s:5, ew:"兄弟", er:"きょうだい", p:"n"},
+    {k:"冬", on:"トウ", kun:"ふゆ", s:5, ew:"冬", er:"ふゆ", p:"n"},
+    {k:"北", on:"ホク", kun:"きた", s:5, ew:"北", er:"きた", p:"n"},
+    {k:"半", on:"ハン", kun:"なか(ば)", s:5, ew:"半分", er:"はんぶん", p:"n"},
+    {k:"古", on:"コ", kun:"ふる(い)", s:5, ew:"古", er:"いにしえ", p:"n"},
+    {k:"台", on:"ダイ", kun:"", s:5, ew:"台本", er:"だいほん", p:"n"},
+    {k:"外", on:"ガイ", kun:"そと", s:5, ew:"外", er:"そと", p:"n"},
+    {k:"市", on:"シ", kun:"いち", s:5, ew:"市場", er:"いちば", p:"n"},
+    {k:"広", on:"コウ", kun:"ひろ(い)", s:5, ew:"広場", er:"ひろば", p:"n"},
+    {k:"母", on:"ボ", kun:"はは", s:5, ew:"母親", er:"ははおや", p:"n"},
+    {k:"用", on:"ヨウ", kun:"もち(いる)", s:5, ew:"作用", er:"さよう", p:"n"},
+    {k:"矢", on:"シ", kun:"や", s:5, ew:"弓矢", er:"ゆみや", p:"n"},
+    {k:"交", on:"コウ", kun:"まじ(わる)", s:6, ew:"交通", er:"こうつう", p:"n"},
+    {k:"会", on:"カイ", kun:"あ(う)", s:6, ew:"会社", er:"かいしゃ", p:"n"},
+    {k:"光", on:"コウ", kun:"ひかり", s:6, ew:"光", er:"ひかり", p:"n"},
+    {k:"同", on:"ドウ", kun:"おな(じ)", s:6, ew:"同時", er:"どうじ", p:"n"},
+    {k:"回", on:"カイ", kun:"まわ(る)", s:6, ew:"今回", er:"こんかい", p:"n"},
+    {k:"多", on:"タ", kun:"おお(い)", s:6, ew:"多く", er:"おおく", p:"n"},
+    {k:"当", on:"トウ", kun:"あ(たる)", s:6, ew:"本当", er:"ほんとう", p:"n"},
+    {k:"毎", on:"マイ", kun:"ごと", s:6, ew:"毎日", er:"まいにち", p:"n"},
+    {k:"池", on:"チ", kun:"いけ", s:6, ew:"電池", er:"でんち", p:"n"},
+    {k:"米", on:"ベイ", kun:"こめ", s:6, ew:"米国", er:"べいこく", p:"n"},
+    {k:"羽", on:"ウ", kun:"はね", s:6, ew:"羽", er:"はね", p:"n"},
+    {k:"考", on:"コウ", kun:"かんが(える)", s:6, ew:"考え", er:"かんがえ", p:"n"},
+    {k:"肉", on:"ニク", kun:"", s:6, ew:"肉体", er:"にくたい", p:"n"},
+    {k:"自", on:"ジ", kun:"", s:6, ew:"自分", er:"じぶん", p:"n"},
+    {k:"色", on:"シキ", kun:"いろ", s:6, ew:"色", er:"いろ", p:"n"},
+    {k:"行", on:"コウ", kun:"い(く)", s:6, ew:"行方", er:"ゆくえ", p:"n"},
+    {k:"西", on:"セイ", kun:"にし", s:6, ew:"西", er:"にし", p:"n"},
+    {k:"何", on:"カ", kun:"なに", s:7, ew:"何百", er:"なんびゃく", p:"n"},
+    {k:"体", on:"タイ", kun:"からだ", s:7, ew:"一体", er:"いったい", p:"n"},
+    {k:"作", on:"サク", kun:"つく(る)", s:7, ew:"工作", er:"こうさく", p:"n"},
+    {k:"図", on:"ズ", kun:"え", s:7, ew:"合図", er:"あいず", p:"n"},
+    {k:"声", on:"セイ", kun:"こえ", s:7, ew:"音声", er:"おんせい", p:"n"},
+    {k:"売", on:"バイ", kun:"う(る)", s:7, ew:"売春", er:"ばいしゅん", p:"n"},
+    {k:"弟", on:"ダイ", kun:"おとうと", s:7, ew:"兄弟", er:"きょうだい", p:"n"},
+    {k:"形", on:"ケイ", kun:"かた", s:7, ew:"人形", er:"にんぎょう", p:"n"},
+    {k:"来", on:"ライ", kun:"く(る)", s:7, ew:"来る", er:"くる", p:"v"},
+    {k:"社", on:"シャ", kun:"やしろ", s:7, ew:"会社", er:"かいしゃ", p:"n"},
+    {k:"角", on:"カク", kun:"かど", s:7, ew:"角", er:"かど", p:"n"},
+    {k:"言", on:"ゲン", kun:"い(う)", s:7, ew:"一言", er:"ひとこと", p:"n"},
+    {k:"谷", on:"コク", kun:"たに", s:7, ew:"谷間", er:"たにま", p:"n"},
+    {k:"走", on:"ソウ", kun:"はし(る)", s:7, ew:"走り", er:"はしり", p:"n"},
+    {k:"近", on:"キン", kun:"ちか(い)", s:7, ew:"近く", er:"ちかく", p:"n"},
+    {k:"里", on:"リ", kun:"さと", s:7, ew:"里親", er:"さとおや", p:"n"},
+    {k:"麦", on:"バク", kun:"むぎ", s:7, ew:"小麦", er:"こむぎ", p:"n"},
+    {k:"地", on:"チ", kun:"", s:6, ew:"地下", er:"ちか", p:"n"},
+    {k:"京", on:"キョウ", kun:"みやこ", s:8, ew:"東京", er:"とうきょう", p:"n"},
+    {k:"国", on:"コク", kun:"くに", s:8, ew:"王国", er:"おうこく", p:"n"},
+    {k:"夜", on:"ヤ", kun:"よ", s:8, ew:"今夜", er:"こんや", p:"n"},
+    {k:"妹", on:"マイ", kun:"いもうと", s:8, ew:"妹", er:"いもうと", p:"n"},
+    {k:"姉", on:"シ", kun:"お", s:8, ew:"姉妹", er:"しまい", p:"n"},
+    {k:"店", on:"テン", kun:"みせ", s:8, ew:"店", er:"みせ", p:"n"},
+    {k:"明", on:"メイ", kun:"あ(かり)", s:8, ew:"明日", er:"あした", p:"n"},
+    {k:"東", on:"トウ", kun:"ひがし", s:8, ew:"東京", er:"とうきょう", p:"n"},
+    {k:"歩", on:"ホ", kun:"ある(く)", s:8, ew:"歩", er:"ほ", p:"n"},
+    {k:"画", on:"ガ", kun:"", s:8, ew:"計画", er:"けいかく", p:"n"},
+    {k:"直", on:"チョク", kun:"なお(す)", s:8, ew:"正直", er:"しょうじき", p:"n"},
+    {k:"知", on:"チ", kun:"し(る)", s:8, ew:"知らせ", er:"しらせ", p:"n"},
+    {k:"長", on:"チョウ", kun:"なが(い)", s:8, ew:"船長", er:"せんちょう", p:"n"},
+    {k:"前", on:"ゼン", kun:"まえ", s:9, ew:"お前", er:"おまえ", p:"n"},
+    {k:"南", on:"ナン", kun:"みなみ", s:9, ew:"南", er:"みなみ", p:"n"},
+    {k:"室", on:"シツ", kun:"", s:9, ew:"教室", er:"きょうしつ", p:"n"},
+    {k:"後", on:"ゴ", kun:"うし(ろ)", s:9, ew:"後ろ", er:"うしろ", p:"n"},
+    {k:"思", on:"シ", kun:"おも(う)", s:9, ew:"思い", er:"おもい", p:"n"},
+    {k:"星", on:"セイ", kun:"ほし", s:9, ew:"火星", er:"かせい", p:"n"},
+    {k:"活", on:"カツ", kun:"い(きる)", s:9, ew:"生活", er:"せいかつ", p:"n"},
+    {k:"海", on:"カイ", kun:"うみ", s:9, ew:"海", er:"うみ", p:"n"},
+    {k:"点", on:"テン", kun:"つ(ける)", s:9, ew:"点火", er:"てんか", p:"n"},
+    {k:"科", on:"カ", kun:"", s:9, ew:"科学", er:"かがく", p:"n"},
+    {k:"茶", on:"チャ", kun:"", s:9, ew:"茶色", er:"ちゃいろ", p:"n"},
+    {k:"食", on:"ショク", kun:"た(べる)", s:9, ew:"夕食", er:"ゆうしょく", p:"n"},
+    {k:"首", on:"シュ", kun:"くび", s:9, ew:"首", er:"くび", p:"n"},
+    {k:"夏", on:"ゲ", kun:"なつ", s:10, ew:"夏", er:"なつ", p:"n"},
+    {k:"家", on:"カ", kun:"いえ", s:10, ew:"家", er:"いえ", p:"n"},
+    {k:"弱", on:"ジャク", kun:"よわ(い)", s:10, ew:"弱気", er:"よわき", p:"n"},
+    {k:"時", on:"ジ", kun:"とき", s:10, ew:"時間", er:"じかん", p:"n"},
+    {k:"紙", on:"シ", kun:"かみ", s:10, ew:"手紙", er:"てがみ", p:"n"},
+    {k:"記", on:"キ", kun:"しる(す)", s:10, ew:"記入", er:"きにゅう", p:"n"},
+    {k:"通", on:"ツウ", kun:"とお(る)", s:10, ew:"通り", er:"とおり", p:"n"},
+    {k:"高", on:"コウ", kun:"たか(い)", s:10, ew:"高校", er:"こうこう", p:"n"},
+    {k:"強", on:"キョウ", kun:"つよ(い)", s:11, ew:"強い", er:"つよい", p:"a"},
+    {k:"教", on:"キョウ", kun:"おし(える)", s:11, ew:"教え", er:"おしえ", p:"n"},
+    {k:"理", on:"リ", kun:"ことわり", s:11, ew:"心理", er:"しんり", p:"n"},
+    {k:"組", on:"ソ", kun:"くみ", s:11, ew:"番組", er:"ばんぐみ", p:"n"},
+    {k:"船", on:"セン", kun:"ふね", s:11, ew:"船長", er:"せんちょう", p:"n"},
+    {k:"週", on:"シュウ", kun:"", s:11, ew:"週間", er:"しゅうかん", p:"n"},
+    {k:"雪", on:"セツ", kun:"ゆき", s:11, ew:"雪", er:"ゆき", p:"n"},
+    {k:"魚", on:"ギョ", kun:"さかな", s:11, ew:"魚", er:"さかな", p:"n"},
+    {k:"鳥", on:"チョウ", kun:"とり", s:11, ew:"小鳥", er:"ことり", p:"n"},
+    {k:"黄", on:"オウ", kun:"き", s:11, ew:"黄金", er:"おうごん", p:"n"},
+    {k:"黒", on:"コク", kun:"くろ", s:11, ew:"黒人", er:"こくじん", p:"n"},
+    {k:"馬", on:"バ", kun:"うま", s:10, ew:"馬車", er:"ばしゃ", p:"n"},
+    {k:"場", on:"ジョウ", kun:"ば", s:12, ew:"場合", er:"ばあい", p:"n"},
+    {k:"朝", on:"チョウ", kun:"あさ", s:12, ew:"今朝", er:"けさ", p:"n"},
+    {k:"番", on:"バン", kun:"", s:12, ew:"一番", er:"いちばん", p:"n"},
+    {k:"答", on:"トウ", kun:"こた(える)", s:12, ew:"答え", er:"こたえ", p:"n"},
+    {k:"絵", on:"エ", kun:"", s:12, ew:"絵画", er:"かいが", p:"n"},
+    {k:"買", on:"バイ", kun:"か(う)", s:12, ew:"売買", er:"ばいばい", p:"n"},
+    {k:"道", on:"ドウ", kun:"みち", s:12, ew:"道", er:"みち", p:"n"},
+    {k:"間", on:"カン", kun:"あいだ", s:12, ew:"人間", er:"にんげん", p:"n"},
+    {k:"雲", on:"ウン", kun:"くも", s:12, ew:"雲", er:"くも", p:"n"},
+    {k:"数", on:"スウ", kun:"かぞ(える)", s:13, ew:"数字", er:"すうじ", p:"n"},
+    {k:"楽", on:"ラク", kun:"たの(しい)", s:13, ew:"楽しみ", er:"たのしみ", p:"n"},
+    {k:"話", on:"ワ", kun:"はな(す)", s:13, ew:"電話", er:"でんわ", p:"n"},
+    {k:"電", on:"デン", kun:"", s:13, ew:"電話", er:"でんわ", p:"n"},
+    {k:"歌", on:"カ", kun:"うた", s:14, ew:"歌", er:"うた", p:"n"},
+    {k:"算", on:"サン", kun:"そろ", s:14, ew:"計算", er:"けいさん", p:"n"},
+    {k:"聞", on:"ブン", kun:"き(く)", s:14, ew:"新聞", er:"しんぶん", p:"n"},
+    {k:"語", on:"ゴ", kun:"かた(る)", s:14, ew:"言語", er:"げんご", p:"n"},
+    {k:"読", on:"トウ", kun:"よ(む)", s:14, ew:"読書", er:"どくしょ", p:"n"},
+    {k:"鳴", on:"メイ", kun:"な(く)", s:14, ew:"鳴く", er:"なく", p:"v"},
+    {k:"線", on:"セン", kun:"", s:15, ew:"一線", er:"いっせん", p:"n"},
+    {k:"親", on:"シン", kun:"おや", s:16, ew:"父親", er:"ちちおや", p:"n"},
+    {k:"頭", on:"ズ", kun:"あたま", s:16, ew:"頭", er:"あたま", p:"n"},
+    {k:"顔", on:"ガン", kun:"かお", s:18, ew:"顔", er:"かお", p:"n"},
+    {k:"野", on:"ヤ", kun:"の", s:11, ew:"野生", er:"やせい", p:"n"},
+    {k:"合", on:"ゴウ", kun:"あ(う)", s:6, ew:"場合", er:"ばあい", p:"n"},
+    {k:"風", on:"フウ", kun:"かぜ", s:9, ew:"風", er:"かぜ", p:"n"},
+    {k:"新", on:"シン", kun:"あたら(しい)", s:13, ew:"新聞", er:"しんぶん", p:"n"},
+    {k:"寺", on:"ジ", kun:"てら", s:6, ew:"寺", er:"てら", p:"n"},
+    {k:"岩", on:"ガン", kun:"いわ", s:8, ew:"岩山", er:"いわやま", p:"n"},
+    {k:"帰", on:"キ", kun:"かえ(る)", s:10, ew:"帰り", er:"かえり", p:"n"},
+    {k:"春", on:"シュン", kun:"はる", s:9, ew:"売春", er:"ばいしゅん", p:"n"},
+    {k:"昼", on:"チュウ", kun:"ひる", s:9, ew:"昼間", er:"ひるま", p:"n"},
+    {k:"晴", on:"セイ", kun:"は(れる)", s:12, ew:"晴れ", er:"はれ", p:"n"},
+    {k:"秋", on:"シュウ", kun:"あき", s:9, ew:"秋", er:"あき", p:"n"},
+    {k:"計", on:"ケイ", kun:"はか(る)", s:9, ew:"計画", er:"けいかく", p:"n"},
+    {k:"園", on:"エン", kun:"", s:13, ew:"公園", er:"こうえん", p:"n"},
+    {k:"曜", on:"ヨウ", kun:"", s:18, ew:"金曜", er:"きんよう", p:"n"},
+    {k:"書", on:"ショ", kun:"か(く)", s:10, ew:"文書", er:"ぶんしょ", p:"n"},
+    {k:"遠", on:"エン", kun:"とお(い)", s:13, ew:"遠く", er:"とおく", p:"n"},
+    {k:"門", on:"モン", kun:"", s:8, ew:"入門", er:"にゅうもん", p:"n"},
+    {k:"原", on:"ゲン", kun:"はら", s:10, ew:"原子", er:"げんし", p:"n"},
+    {k:"細", on:"サイ", kun:"ほそ(い)", s:11, ew:"細工", er:"さいく", p:"n"},
+    {k:"弓", on:"キュウ", kun:"ゆみ", s:3, ew:"弓矢", er:"ゆみや", p:"n"},
+    {k:"汽", on:"キ", kun:"", s:7, ew:"汽車", er:"きしゃ", p:"n"},
   ],
   3: [
-    {k:"丁", on:"チョウ", kun:"", s:2},
-    {k:"世", on:"セ", kun:"よ", s:5},
-    {k:"主", on:"シュ", kun:"おも", s:5},
-    {k:"他", on:"タ", kun:"ほか", s:5},
-    {k:"代", on:"ダイ", kun:"か(わる)", s:5},
-    {k:"写", on:"シャ", kun:"うつ(す)", s:5},
-    {k:"去", on:"キョ", kun:"さ(る)", s:5},
-    {k:"号", on:"ゴウ", kun:"", s:5},
-    {k:"央", on:"オウ", kun:"", s:5},
-    {k:"平", on:"ヘイ", kun:"たいら", s:5},
-    {k:"打", on:"ダ", kun:"う(つ)", s:5},
-    {k:"氷", on:"ヒョウ", kun:"こおり", s:5},
-    {k:"申", on:"シン", kun:"もう(す)", s:5},
-    {k:"皮", on:"ヒ", kun:"かわ", s:5},
-    {k:"皿", on:"ベイ", kun:"さら", s:5},
-    {k:"礼", on:"レイ", kun:"", s:5},
-    {k:"仕", on:"シ", kun:"つか(える)", s:5},
-    {k:"化", on:"カ", kun:"ば(ける)", s:4},
-    {k:"両", on:"リョウ", kun:"", s:6},
-    {k:"全", on:"ゼン", kun:"すべ(て)", s:6},
-    {k:"向", on:"コウ", kun:"む(く)", s:6},
-    {k:"安", on:"アン", kun:"やす(い)", s:6},
-    {k:"州", on:"シュウ", kun:"", s:6},
-    {k:"曲", on:"キョク", kun:"ま(がる)", s:6},
-    {k:"有", on:"ユウ", kun:"あ(る)", s:6},
-    {k:"次", on:"ジ", kun:"つぎ", s:6},
-    {k:"死", on:"シ", kun:"し(ぬ)", s:6},
-    {k:"羊", on:"ヨウ", kun:"ひつじ", s:6},
-    {k:"血", on:"ケツ", kun:"ち", s:6},
-    {k:"由", on:"ユウ", kun:"よし", s:5},
-    {k:"住", on:"ジュウ", kun:"す(む)", s:7},
-    {k:"助", on:"ジョ", kun:"たす(ける)", s:7},
-    {k:"医", on:"イ", kun:"", s:7},
-    {k:"君", on:"クン", kun:"きみ", s:7},
-    {k:"対", on:"タイ", kun:"", s:7},
-    {k:"局", on:"キョク", kun:"", s:7},
-    {k:"役", on:"ヤク", kun:"", s:7},
-    {k:"投", on:"トウ", kun:"な(げる)", s:7},
-    {k:"決", on:"ケツ", kun:"き(める)", s:7},
-    {k:"究", on:"キュウ", kun:"きわ(める)", s:7},
-    {k:"身", on:"シン", kun:"み", s:7},
-    {k:"者", on:"シャ", kun:"もの", s:8},
-    {k:"研", on:"ケン", kun:"と(ぐ)", s:9},
-    {k:"所", on:"ショ", kun:"ところ", s:8},
-    {k:"事", on:"ジ", kun:"こと", s:8},
-    {k:"使", on:"シ", kun:"つか(う)", s:8},
-    {k:"具", on:"グ", kun:"", s:8},
-    {k:"受", on:"ジュ", kun:"う(ける)", s:8},
-    {k:"和", on:"ワ", kun:"なご(む)", s:8},
-    {k:"始", on:"シ", kun:"はじ(める)", s:8},
-    {k:"定", on:"テイ", kun:"さだ(める)", s:8},
-    {k:"実", on:"ジツ", kun:"み", s:8},
-    {k:"服", on:"フク", kun:"", s:8},
-    {k:"泳", on:"エイ", kun:"およ(ぐ)", s:8},
-    {k:"物", on:"ブツ", kun:"もの", s:8},
-    {k:"苦", on:"ク", kun:"くる(しい)", s:8},
-    {k:"表", on:"ヒョウ", kun:"あらわ(す)", s:8},
-    {k:"部", on:"ブ", kun:"へ", s:11},
-    {k:"乗", on:"ジョウ", kun:"の(る)", s:9},
-    {k:"客", on:"キャク", kun:"", s:9},
-    {k:"屋", on:"オク", kun:"や", s:9},
-    {k:"度", on:"ド", kun:"たび", s:9},
-    {k:"待", on:"タイ", kun:"ま(つ)", s:9},
-    {k:"持", on:"ジ", kun:"も(つ)", s:9},
-    {k:"界", on:"カイ", kun:"", s:9},
-    {k:"発", on:"ハツ", kun:"", s:9},
-    {k:"相", on:"ソウ", kun:"あい", s:9},
-    {k:"県", on:"ケン", kun:"", s:9},
-    {k:"美", on:"ビ", kun:"うつく(しい)", s:9},
-    {k:"負", on:"フ", kun:"ま(ける)", s:9},
-    {k:"送", on:"ソウ", kun:"おく(る)", s:9},
-    {k:"重", on:"ジュウ", kun:"おも(い)", s:9},
-    {k:"談", on:"ダン", kun:"", s:15},
-    {k:"勝", on:"ショウ", kun:"か(つ)", s:12},
-    {k:"起", on:"キ", kun:"お(きる)", s:10},
-    {k:"速", on:"ソク", kun:"はや(い)", s:10},
-    {k:"配", on:"ハイ", kun:"くば(る)", s:10},
-    {k:"酒", on:"シュ", kun:"さけ", s:10},
-    {k:"院", on:"イン", kun:"", s:10},
-    {k:"終", on:"シュウ", kun:"おわ(る)", s:11},
-    {k:"習", on:"シュウ", kun:"なら(う)", s:11},
-    {k:"転", on:"テン", kun:"ころ(がる)", s:11},
-    {k:"進", on:"シン", kun:"すす(む)", s:11},
-    {k:"落", on:"ラク", kun:"お(ちる)", s:12},
-    {k:"葉", on:"ヨウ", kun:"は", s:12},
-    {k:"軽", on:"ケイ", kun:"かる(い)", s:12},
-    {k:"運", on:"ウン", kun:"はこ(ぶ)", s:12},
-    {k:"開", on:"カイ", kun:"あ(く)", s:12},
-    {k:"集", on:"シュウ", kun:"あつ(まる)", s:12},
-    {k:"飲", on:"イン", kun:"の(む)", s:12},
-    {k:"業", on:"ギョウ", kun:"", s:13},
-    {k:"漢", on:"カン", kun:"", s:13},
-    {k:"路", on:"ロ", kun:"じ", s:13},
-    {k:"農", on:"ノウ", kun:"", s:13},
-    {k:"鉄", on:"テツ", kun:"", s:13},
-    {k:"横", on:"オウ", kun:"よこ", s:15},
-    {k:"調", on:"チョウ", kun:"しら(べる)", s:15},
-    {k:"病", on:"ビョウ", kun:"や(む)", s:10},
-    {k:"命", on:"メイ", kun:"いのち", s:8},
-    {k:"岸", on:"ガン", kun:"きし", s:8},
-    {k:"放", on:"ホウ", kun:"はな(す)", s:8},
-    {k:"昔", on:"セキ", kun:"むかし", s:8},
-    {k:"波", on:"ハ", kun:"なみ", s:8},
-    {k:"注", on:"チュウ", kun:"そそ(ぐ)", s:8},
-    {k:"育", on:"イク", kun:"そだ(つ)", s:8},
-    {k:"拾", on:"シュウ", kun:"ひろ(う)", s:9},
-    {k:"指", on:"シ", kun:"ゆび", s:9},
-    {k:"洋", on:"ヨウ", kun:"", s:9},
-    {k:"神", on:"シン", kun:"かみ", s:9},
-    {k:"秒", on:"ビョウ", kun:"", s:9},
-    {k:"級", on:"キュウ", kun:"", s:9},
-    {k:"追", on:"ツイ", kun:"お(う)", s:9},
-    {k:"意", on:"イ", kun:"", s:13},
-    {k:"味", on:"ミ", kun:"あじ", s:8},
-    {k:"勉", on:"ベン", kun:"", s:10},
-    {k:"庭", on:"テイ", kun:"にわ", s:10},
-    {k:"息", on:"ソク", kun:"いき", s:10},
-    {k:"旅", on:"リョ", kun:"たび", s:10},
-    {k:"根", on:"コン", kun:"ね", s:10},
-    {k:"流", on:"リュウ", kun:"なが(れる)", s:10},
-    {k:"消", on:"ショウ", kun:"き(える)", s:10},
-    {k:"倍", on:"バイ", kun:"", s:10},
-    {k:"員", on:"イン", kun:"", s:10},
-    {k:"島", on:"トウ", kun:"しま", s:10},
-    {k:"祭", on:"サイ", kun:"まつり", s:11},
-    {k:"章", on:"ショウ", kun:"", s:11},
-    {k:"第", on:"ダイ", kun:"", s:11},
-    {k:"都", on:"ト", kun:"みやこ", s:11},
-    {k:"動", on:"ドウ", kun:"うご(く)", s:11},
-    {k:"商", on:"ショウ", kun:"あきな(う)", s:11},
-    {k:"悪", on:"アク", kun:"わる(い)", s:11},
-    {k:"族", on:"ゾク", kun:"", s:11},
-    {k:"深", on:"シン", kun:"ふか(い)", s:11},
-    {k:"球", on:"キュウ", kun:"たま", s:11},
-    {k:"童", on:"ドウ", kun:"", s:12},
-    {k:"陽", on:"ヨウ", kun:"ひ", s:12},
-    {k:"階", on:"カイ", kun:"", s:12},
-    {k:"寒", on:"カン", kun:"さむ(い)", s:12},
-    {k:"悲", on:"ヒ", kun:"かな(しい)", s:12},
-    {k:"暑", on:"ショ", kun:"あつ(い)", s:12},
-    {k:"期", on:"キ", kun:"", s:12},
-    {k:"植", on:"ショク", kun:"う(える)", s:12},
-    {k:"歯", on:"シ", kun:"は", s:12},
-    {k:"温", on:"オン", kun:"あたた(か)", s:12},
-    {k:"港", on:"コウ", kun:"みなと", s:12},
-    {k:"湯", on:"トウ", kun:"ゆ", s:12},
-    {k:"登", on:"トウ", kun:"のぼ(る)", s:12},
-    {k:"着", on:"チャク", kun:"き(る)", s:12},
-    {k:"短", on:"タン", kun:"みじか(い)", s:12},
-    {k:"予", on:"ヨ", kun:"あらかじ(め)", s:4},
-    {k:"反", on:"ハン", kun:"", s:4},
-    {k:"返", on:"ヘン", kun:"かえ(す)", s:7},
-    {k:"問", on:"モン", kun:"と(う)", s:11},
-    {k:"宿", on:"シュク", kun:"やど", s:11},
-    {k:"想", on:"ソウ", kun:"", s:13},
-    {k:"感", on:"カン", kun:"", s:13},
-    {k:"整", on:"セイ", kun:"ととの(える)", s:16},
-    {k:"暗", on:"アン", kun:"くら(い)", s:13},
-    {k:"様", on:"ヨウ", kun:"さま", s:14},
-    {k:"橋", on:"キョウ", kun:"はし", s:16},
-    {k:"福", on:"フク", kun:"", s:13},
-    {k:"緑", on:"リョク", kun:"みどり", s:14},
-    {k:"練", on:"レン", kun:"ね(る)", s:14},
-    {k:"詩", on:"シ", kun:"うた", s:13},
-    {k:"銀", on:"ギン", kun:"", s:14},
-    {k:"題", on:"ダイ", kun:"", s:18},
-    {k:"館", on:"カン", kun:"", s:16},
-    {k:"駅", on:"エキ", kun:"", s:14},
-    {k:"列", on:"レツ", kun:"", s:6},
-    {k:"区", on:"ク", kun:"", s:4},
-    {k:"坂", on:"ハン", kun:"さか", s:7},
-    {k:"式", on:"シキ", kun:"", s:6},
-    {k:"係", on:"ケイ", kun:"かか(る)", s:9},
-    {k:"取", on:"シュ", kun:"と(る)", s:8},
-    {k:"品", on:"ヒン", kun:"しな", s:9},
-    {k:"守", on:"ス", kun:"まも(る)", s:6},
-    {k:"幸", on:"コウ", kun:"しあわ(せ)", s:8},
-    {k:"急", on:"キュウ", kun:"いそ(ぐ)", s:9},
-    {k:"真", on:"シン", kun:"ま", s:10},
-    {k:"箱", on:"ソウ", kun:"はこ", s:15},
-    {k:"荷", on:"カ", kun:"に", s:10},
-    {k:"面", on:"メン", kun:"おも", s:9},
-    {k:"薬", on:"ヤク", kun:"くすり", s:16},
-    {k:"鼻", on:"ビ", kun:"はな", s:14},
-    {k:"等", on:"トウ", kun:"ひと(しい)", s:12},
-    {k:"笛", on:"テキ", kun:"ふえ", s:11},
-    {k:"委", on:"イ", kun:"", s:8},
-    {k:"宮", on:"キュウ", kun:"みや", s:10},
-    {k:"筆", on:"ヒツ", kun:"ふで", s:12},
-    {k:"庫", on:"コ", kun:"くら", s:10},
-    {k:"板", on:"ハン", kun:"いた", s:8},
-    {k:"遊", on:"ユウ", kun:"あそ(ぶ)", s:12},
-    {k:"豆", on:"トウ", kun:"まめ", s:7},
-    {k:"湖", on:"コ", kun:"みずうみ", s:12},
-    {k:"油", on:"ユ", kun:"あぶら", s:8},
-    {k:"昭", on:"ショウ", kun:"", s:9},
-    {k:"柱", on:"チュウ", kun:"はしら", s:9},
-    {k:"炭", on:"タン", kun:"すみ", s:9},
-    {k:"畑", on:"", kun:"はたけ", s:9},
-    {k:"帳", on:"チョウ", kun:"とばり", s:11},
+    {k:"丁", on:"チョウ", kun:"", s:2, ew:"丁目", er:"ちょうめ", p:"n"},
+    {k:"世", on:"セ", kun:"よ", s:5, ew:"世話", er:"せわ", p:"n"},
+    {k:"主", on:"シュ", kun:"おも", s:5, ew:"主人", er:"しゅじん", p:"n"},
+    {k:"他", on:"タ", kun:"ほか", s:5, ew:"他", er:"ほか", p:"n"},
+    {k:"代", on:"ダイ", kun:"か(わる)", s:5, ew:"時代", er:"じだい", p:"n"},
+    {k:"写", on:"シャ", kun:"うつ(す)", s:5, ew:"写真", er:"しゃしん", p:"n"},
+    {k:"去", on:"キョ", kun:"さ(る)", s:5, ew:"去年", er:"きょねん", p:"n"},
+    {k:"号", on:"ゴウ", kun:"", s:5, ew:"番号", er:"ばんごう", p:"n"},
+    {k:"央", on:"オウ", kun:"", s:5, ew:"中央", er:"ちゅうおう", p:"n"},
+    {k:"平", on:"ヘイ", kun:"たいら", s:5, ew:"平気", er:"へいき", p:"n"},
+    {k:"打", on:"ダ", kun:"う(つ)", s:5, ew:"強打", er:"きょうだ", p:"n"},
+    {k:"氷", on:"ヒョウ", kun:"こおり", s:5, ew:"氷", er:"こおり", p:"n"},
+    {k:"申", on:"シン", kun:"もう(す)", s:5, ew:"申し出", er:"もうしで", p:"n"},
+    {k:"皮", on:"ヒ", kun:"かわ", s:5, ew:"皮肉", er:"ひにく", p:"n"},
+    {k:"皿", on:"ベイ", kun:"さら", s:5, ew:"皿", er:"さら", p:"n"},
+    {k:"礼", on:"レイ", kun:"", s:5, ew:"お礼", er:"おれい", p:"n"},
+    {k:"仕", on:"シ", kun:"つか(える)", s:5, ew:"仕事", er:"しごと", p:"n"},
+    {k:"化", on:"カ", kun:"ば(ける)", s:4, ew:"化学", er:"かがく", p:"n"},
+    {k:"両", on:"リョウ", kun:"", s:6, ew:"両親", er:"りょうしん", p:"n"},
+    {k:"全", on:"ゼン", kun:"すべ(て)", s:6, ew:"安全", er:"あんぜん", p:"n"},
+    {k:"向", on:"コウ", kun:"む(く)", s:6, ew:"向こう", er:"むこう", p:"n"},
+    {k:"安", on:"アン", kun:"やす(い)", s:6, ew:"安全", er:"あんぜん", p:"n"},
+    {k:"州", on:"シュウ", kun:"", s:6, ew:"広州", er:"こうしゅう", p:"n"},
+    {k:"曲", on:"キョク", kun:"ま(がる)", s:6, ew:"曲線", er:"きょくせん", p:"n"},
+    {k:"有", on:"ユウ", kun:"あ(る)", s:6, ew:"所有", er:"しょゆう", p:"n"},
+    {k:"次", on:"ジ", kun:"つぎ", s:6, ew:"次", er:"つぎ", p:"n"},
+    {k:"死", on:"シ", kun:"し(ぬ)", s:6, ew:"死体", er:"したい", p:"n"},
+    {k:"羊", on:"ヨウ", kun:"ひつじ", s:6, ew:"子羊", er:"こひつじ", p:"n"},
+    {k:"血", on:"ケツ", kun:"ち", s:6, ew:"出血", er:"しゅっけつ", p:"n"},
+    {k:"由", on:"ユウ", kun:"よし", s:5, ew:"自由", er:"じゆう", p:"n"},
+    {k:"住", on:"ジュウ", kun:"す(む)", s:7, ew:"住所", er:"じゅうしょ", p:"n"},
+    {k:"助", on:"ジョ", kun:"たす(ける)", s:7, ew:"助け", er:"たすけ", p:"n"},
+    {k:"医", on:"イ", kun:"", s:7, ew:"医者", er:"いしゃ", p:"n"},
+    {k:"君", on:"クン", kun:"きみ", s:7, ew:"君", er:"きみ", p:"n"},
+    {k:"対", on:"タイ", kun:"", s:7, ew:"対", er:"つい", p:"n"},
+    {k:"局", on:"キョク", kun:"", s:7, ew:"当局", er:"とうきょく", p:"n"},
+    {k:"役", on:"ヤク", kun:"", s:7, ew:"役人", er:"やくにん", p:"n"},
+    {k:"投", on:"トウ", kun:"な(げる)", s:7, ew:"投げ", er:"なげ", p:"n"},
+    {k:"決", on:"ケツ", kun:"き(める)", s:7, ew:"決して", er:"けっして", p:"o"},
+    {k:"究", on:"キュウ", kun:"きわ(める)", s:7, ew:"研究", er:"けんきゅう", p:"n"},
+    {k:"身", on:"シン", kun:"み", s:7, ew:"自身", er:"じしん", p:"n"},
+    {k:"者", on:"シャ", kun:"もの", s:8, ew:"医者", er:"いしゃ", p:"n"},
+    {k:"研", on:"ケン", kun:"と(ぐ)", s:9, ew:"研究", er:"けんきゅう", p:"n"},
+    {k:"所", on:"ショ", kun:"ところ", s:8, ew:"場所", er:"ばしょ", p:"n"},
+    {k:"事", on:"ジ", kun:"こと", s:8, ew:"大事", er:"だいじ", p:"n"},
+    {k:"使", on:"シ", kun:"つか(う)", s:8, ew:"使い", er:"つかい", p:"n"},
+    {k:"具", on:"グ", kun:"", s:8, ew:"道具", er:"どうぐ", p:"n"},
+    {k:"受", on:"ジュ", kun:"う(ける)", s:8, ew:"受け", er:"うけ", p:"n"},
+    {k:"和", on:"ワ", kun:"なご(む)", s:8, ew:"平和", er:"へいわ", p:"n"},
+    {k:"始", on:"シ", kun:"はじ(める)", s:8, ew:"始まり", er:"はじまり", p:"n"},
+    {k:"定", on:"テイ", kun:"さだ(める)", s:8, ew:"予定", er:"よてい", p:"n"},
+    {k:"実", on:"ジツ", kun:"み", s:8, ew:"事実", er:"じじつ", p:"n"},
+    {k:"服", on:"フク", kun:"", s:8, ew:"服役", er:"ふくえき", p:"n"},
+    {k:"泳", on:"エイ", kun:"およ(ぐ)", s:8, ew:"水泳", er:"すいえい", p:"n"},
+    {k:"物", on:"ブツ", kun:"もの", s:8, ew:"人物", er:"じんぶつ", p:"n"},
+    {k:"苦", on:"ク", kun:"くる(しい)", s:8, ew:"苦しみ", er:"くるしみ", p:"n"},
+    {k:"表", on:"ヒョウ", kun:"あらわ(す)", s:8, ew:"代表", er:"だいひょう", p:"n"},
+    {k:"部", on:"ブ", kun:"へ", s:11, ew:"部下", er:"ぶか", p:"n"},
+    {k:"乗", on:"ジョウ", kun:"の(る)", s:9, ew:"乗員", er:"じょういん", p:"n"},
+    {k:"客", on:"キャク", kun:"", s:9, ew:"客", er:"きゃく", p:"n"},
+    {k:"屋", on:"オク", kun:"や", s:9, ew:"部屋", er:"へや", p:"n"},
+    {k:"度", on:"ド", kun:"たび", s:9, ew:"今度", er:"こんど", p:"n"},
+    {k:"待", on:"タイ", kun:"ま(つ)", s:9, ew:"期待", er:"きたい", p:"n"},
+    {k:"持", on:"ジ", kun:"も(つ)", s:9, ew:"気持ち", er:"きもち", p:"n"},
+    {k:"界", on:"カイ", kun:"", s:9, ew:"世界", er:"せかい", p:"n"},
+    {k:"発", on:"ハツ", kun:"", s:9, ew:"発見", er:"はっけん", p:"n"},
+    {k:"相", on:"ソウ", kun:"あい", s:9, ew:"相手", er:"あいて", p:"n"},
+    {k:"県", on:"ケン", kun:"", s:9, ew:"県下", er:"けんか", p:"n"},
+    {k:"美", on:"ビ", kun:"うつく(しい)", s:9, ew:"美女", er:"びじょ", p:"n"},
+    {k:"負", on:"フ", kun:"ま(ける)", s:9, ew:"勝負", er:"しょうぶ", p:"n"},
+    {k:"送", on:"ソウ", kun:"おく(る)", s:9, ew:"放送", er:"ほうそう", p:"n"},
+    {k:"重", on:"ジュウ", kun:"おも(い)", s:9, ew:"重大", er:"じゅうだい", p:"n"},
+    {k:"談", on:"ダン", kun:"", s:15, ew:"相談", er:"そうだん", p:"n"},
+    {k:"勝", on:"ショウ", kun:"か(つ)", s:12, ew:"勝手", er:"かって", p:"n"},
+    {k:"起", on:"キ", kun:"お(きる)", s:10, ew:"起動", er:"きどう", p:"n"},
+    {k:"速", on:"ソク", kun:"はや(い)", s:10, ew:"速度", er:"そくど", p:"n"},
+    {k:"配", on:"ハイ", kun:"くば(る)", s:10, ew:"心配", er:"しんぱい", p:"n"},
+    {k:"酒", on:"シュ", kun:"さけ", s:10, ew:"酒", er:"さけ", p:"n"},
+    {k:"院", on:"イン", kun:"", s:10, ew:"病院", er:"びょういん", p:"n"},
+    {k:"終", on:"シュウ", kun:"おわ(る)", s:11, ew:"終わり", er:"おわり", p:"n"},
+    {k:"習", on:"シュウ", kun:"なら(う)", s:11, ew:"練習", er:"れんしゅう", p:"n"},
+    {k:"転", on:"テン", kun:"ころ(がる)", s:11, ew:"運転", er:"うんてん", p:"n"},
+    {k:"進", on:"シン", kun:"すす(む)", s:11, ew:"進行", er:"しんこう", p:"n"},
+    {k:"落", on:"ラク", kun:"お(ちる)", s:12, ew:"落ち", er:"おち", p:"n"},
+    {k:"葉", on:"ヨウ", kun:"は", s:12, ew:"言葉", er:"ことば", p:"n"},
+    {k:"軽", on:"ケイ", kun:"かる(い)", s:12, ew:"軽い", er:"かるい", p:"a"},
+    {k:"運", on:"ウン", kun:"はこ(ぶ)", s:12, ew:"運転", er:"うんてん", p:"n"},
+    {k:"開", on:"カイ", kun:"あ(く)", s:12, ew:"開始", er:"かいし", p:"n"},
+    {k:"集", on:"シュウ", kun:"あつ(まる)", s:12, ew:"集まり", er:"あつまり", p:"n"},
+    {k:"飲", on:"イン", kun:"の(む)", s:12, ew:"飲酒", er:"いんしゅ", p:"n"},
+    {k:"業", on:"ギョウ", kun:"", s:13, ew:"作業", er:"さぎょう", p:"n"},
+    {k:"漢", on:"カン", kun:"", s:13, ew:"漢字", er:"かんじ", p:"n"},
+    {k:"路", on:"ロ", kun:"じ", s:13, ew:"道路", er:"どうろ", p:"n"},
+    {k:"農", on:"ノウ", kun:"", s:13, ew:"農場", er:"のうじょう", p:"n"},
+    {k:"鉄", on:"テツ", kun:"", s:13, ew:"鉄道", er:"てつどう", p:"n"},
+    {k:"横", on:"オウ", kun:"よこ", s:15, ew:"横", er:"よこ", p:"n"},
+    {k:"調", on:"チョウ", kun:"しら(べる)", s:15, ew:"調子", er:"ちょうし", p:"n"},
+    {k:"病", on:"ビョウ", kun:"や(む)", s:10, ew:"病気", er:"びょうき", p:"n"},
+    {k:"命", on:"メイ", kun:"いのち", s:8, ew:"生命", er:"せいめい", p:"n"},
+    {k:"岸", on:"ガン", kun:"きし", s:8, ew:"海岸", er:"かいがん", p:"n"},
+    {k:"放", on:"ホウ", kun:"はな(す)", s:8, ew:"放送", er:"ほうそう", p:"n"},
+    {k:"昔", on:"セキ", kun:"むかし", s:8, ew:"昔", er:"むかし", p:"n"},
+    {k:"波", on:"ハ", kun:"なみ", s:8, ew:"電波", er:"でんぱ", p:"n"},
+    {k:"注", on:"チュウ", kun:"そそ(ぐ)", s:8, ew:"注意", er:"ちゅうい", p:"n"},
+    {k:"育", on:"イク", kun:"そだ(つ)", s:8, ew:"教育", er:"きょういく", p:"n"},
+    {k:"拾", on:"シュウ", kun:"ひろ(う)", s:9, ew:"拾う", er:"ひろう", p:"v"},
+    {k:"指", on:"シ", kun:"ゆび", s:9, ew:"指", er:"ゆび", p:"n"},
+    {k:"洋", on:"ヨウ", kun:"", s:9, ew:"洋服", er:"ようふく", p:"n"},
+    {k:"神", on:"シン", kun:"かみ", s:9, ew:"神父", er:"しんぷ", p:"n"},
+    {k:"秒", on:"ビョウ", kun:"", s:9, ew:"秒", er:"びょう", p:"n"},
+    {k:"級", on:"キュウ", kun:"", s:9, ew:"高級", er:"こうきゅう", p:"n"},
+    {k:"追", on:"ツイ", kun:"お(う)", s:9, ew:"追放", er:"ついほう", p:"n"},
+    {k:"意", on:"イ", kun:"", s:13, ew:"用意", er:"ようい", p:"n"},
+    {k:"味", on:"ミ", kun:"あじ", s:8, ew:"意味", er:"いみ", p:"n"},
+    {k:"勉", on:"ベン", kun:"", s:10, ew:"勉強", er:"べんきょう", p:"n"},
+    {k:"庭", on:"テイ", kun:"にわ", s:10, ew:"家庭", er:"かてい", p:"n"},
+    {k:"息", on:"ソク", kun:"いき", s:10, ew:"息子", er:"むすこ", p:"n"},
+    {k:"旅", on:"リョ", kun:"たび", s:10, ew:"旅行", er:"りょこう", p:"n"},
+    {k:"根", on:"コン", kun:"ね", s:10, ew:"屋根", er:"やね", p:"n"},
+    {k:"流", on:"リュウ", kun:"なが(れる)", s:10, ew:"一流", er:"いちりゅう", p:"n"},
+    {k:"消", on:"ショウ", kun:"き(える)", s:10, ew:"消去", er:"しょうきょ", p:"n"},
+    {k:"倍", on:"バイ", kun:"", s:10, ew:"倍", er:"ばい", p:"n"},
+    {k:"員", on:"イン", kun:"", s:10, ew:"全員", er:"ぜんいん", p:"n"},
+    {k:"島", on:"トウ", kun:"しま", s:10, ew:"島", er:"しま", p:"n"},
+    {k:"祭", on:"サイ", kun:"まつり", s:11, ew:"祭り", er:"まつり", p:"n"},
+    {k:"章", on:"ショウ", kun:"", s:11, ew:"文章", er:"ぶんしょう", p:"n"},
+    {k:"第", on:"ダイ", kun:"", s:11, ew:"次第", er:"しだい", p:"n"},
+    {k:"都", on:"ト", kun:"みやこ", s:11, ew:"都合", er:"つごう", p:"n"},
+    {k:"動", on:"ドウ", kun:"うご(く)", s:11, ew:"行動", er:"こうどう", p:"n"},
+    {k:"商", on:"ショウ", kun:"あきな(う)", s:11, ew:"商人", er:"しょうにん", p:"n"},
+    {k:"悪", on:"アク", kun:"わる(い)", s:11, ew:"悪気", er:"わるぎ", p:"n"},
+    {k:"族", on:"ゾク", kun:"", s:11, ew:"家族", er:"かぞく", p:"n"},
+    {k:"深", on:"シン", kun:"ふか(い)", s:11, ew:"深夜", er:"しんや", p:"n"},
+    {k:"球", on:"キュウ", kun:"たま", s:11, ew:"地球", er:"ちきゅう", p:"n"},
+    {k:"童", on:"ドウ", kun:"", s:12, ew:"童話", er:"どうわ", p:"n"},
+    {k:"陽", on:"ヨウ", kun:"ひ", s:12, ew:"太陽", er:"たいよう", p:"n"},
+    {k:"階", on:"カイ", kun:"", s:12, ew:"階級", er:"かいきゅう", p:"n"},
+    {k:"寒", on:"カン", kun:"さむ(い)", s:12, ew:"寒気", er:"さむけ", p:"n"},
+    {k:"悲", on:"ヒ", kun:"かな(しい)", s:12, ew:"悲しみ", er:"かなしみ", p:"n"},
+    {k:"暑", on:"ショ", kun:"あつ(い)", s:12, ew:"暑い", er:"あつい", p:"a"},
+    {k:"期", on:"キ", kun:"", s:12, ew:"期待", er:"きたい", p:"n"},
+    {k:"植", on:"ショク", kun:"う(える)", s:12, ew:"植物", er:"しょくぶつ", p:"n"},
+    {k:"歯", on:"シ", kun:"は", s:12, ew:"歯車", er:"はぐるま", p:"n"},
+    {k:"温", on:"オン", kun:"あたた(か)", s:12, ew:"体温", er:"たいおん", p:"n"},
+    {k:"港", on:"コウ", kun:"みなと", s:12, ew:"空港", er:"くうこう", p:"n"},
+    {k:"湯", on:"トウ", kun:"ゆ", s:12, ew:"湯", er:"ゆ", p:"n"},
+    {k:"登", on:"トウ", kun:"のぼ(る)", s:12, ew:"登場", er:"とうじょう", p:"n"},
+    {k:"着", on:"チャク", kun:"き(る)", s:12, ew:"下着", er:"したぎ", p:"n"},
+    {k:"短", on:"タン", kun:"みじか(い)", s:12, ew:"短い", er:"みじかい", p:"a"},
+    {k:"予", on:"ヨ", kun:"あらかじ(め)", s:4, ew:"予定", er:"よてい", p:"n"},
+    {k:"反", on:"ハン", kun:"", s:4, ew:"反対", er:"はんたい", p:"n"},
+    {k:"返", on:"ヘン", kun:"かえ(す)", s:7, ew:"返事", er:"へんじ", p:"n"},
+    {k:"問", on:"モン", kun:"と(う)", s:11, ew:"問題", er:"もんだい", p:"n"},
+    {k:"宿", on:"シュク", kun:"やど", s:11, ew:"宿題", er:"しゅくだい", p:"n"},
+    {k:"想", on:"ソウ", kun:"", s:13, ew:"予想", er:"よそう", p:"n"},
+    {k:"感", on:"カン", kun:"", s:13, ew:"感じ", er:"かんじ", p:"n"},
+    {k:"整", on:"セイ", kun:"ととの(える)", s:16, ew:"整理", er:"せいり", p:"n"},
+    {k:"暗", on:"アン", kun:"くら(い)", s:13, ew:"暗号", er:"あんごう", p:"n"},
+    {k:"様", on:"ヨウ", kun:"さま", s:14, ew:"様", er:"さま", p:"n"},
+    {k:"橋", on:"キョウ", kun:"はし", s:16, ew:"橋", er:"はし", p:"n"},
+    {k:"福", on:"フク", kun:"", s:13, ew:"幸福", er:"こうふく", p:"n"},
+    {k:"緑", on:"リョク", kun:"みどり", s:14, ew:"緑色", er:"みどりいろ", p:"n"},
+    {k:"練", on:"レン", kun:"ね(る)", s:14, ew:"練習", er:"れんしゅう", p:"n"},
+    {k:"詩", on:"シ", kun:"うた", s:13, ew:"詩人", er:"しじん", p:"n"},
+    {k:"銀", on:"ギン", kun:"", s:14, ew:"銀行", er:"ぎんこう", p:"n"},
+    {k:"題", on:"ダイ", kun:"", s:18, ew:"問題", er:"もんだい", p:"n"},
+    {k:"館", on:"カン", kun:"", s:16, ew:"館長", er:"かんちょう", p:"n"},
+    {k:"駅", on:"エキ", kun:"", s:14, ew:"駅前", er:"えきまえ", p:"n"},
+    {k:"列", on:"レツ", kun:"", s:6, ew:"列車", er:"れっしゃ", p:"n"},
+    {k:"区", on:"ク", kun:"", s:4, ew:"地区", er:"ちく", p:"n"},
+    {k:"坂", on:"ハン", kun:"さか", s:7, ew:"坂道", er:"さかみち", p:"n"},
+    {k:"式", on:"シキ", kun:"", s:6, ew:"公式", er:"こうしき", p:"n"},
+    {k:"係", on:"ケイ", kun:"かか(る)", s:9, ew:"係", er:"かかり", p:"n"},
+    {k:"取", on:"シュ", kun:"と(る)", s:8, ew:"取引", er:"とりひき", p:"n"},
+    {k:"品", on:"ヒン", kun:"しな", s:9, ew:"品", er:"しな", p:"n"},
+    {k:"守", on:"ス", kun:"まも(る)", s:6, ew:"子守", er:"こもり", p:"n"},
+    {k:"幸", on:"コウ", kun:"しあわ(せ)", s:8, ew:"幸運", er:"こううん", p:"n"},
+    {k:"急", on:"キュウ", kun:"いそ(ぐ)", s:9, ew:"早急", er:"そうきゅう", p:"n"},
+    {k:"真", on:"シン", kun:"ま", s:10, ew:"写真", er:"しゃしん", p:"n"},
+    {k:"箱", on:"ソウ", kun:"はこ", s:15, ew:"箱", er:"はこ", p:"n"},
+    {k:"荷", on:"カ", kun:"に", s:10, ew:"荷物", er:"にもつ", p:"n"},
+    {k:"面", on:"メン", kun:"おも", s:9, ew:"地面", er:"じめん", p:"n"},
+    {k:"薬", on:"ヤク", kun:"くすり", s:16, ew:"薬", er:"くすり", p:"n"},
+    {k:"鼻", on:"ビ", kun:"はな", s:14, ew:"鼻水", er:"はなみず", p:"n"},
+    {k:"等", on:"トウ", kun:"ひと(しい)", s:12, ew:"上等", er:"じょうとう", p:"n"},
+    {k:"笛", on:"テキ", kun:"ふえ", s:11, ew:"口笛", er:"くちぶえ", p:"n"},
+    {k:"委", on:"イ", kun:"", s:8, ew:"委員", er:"いいん", p:"n"},
+    {k:"宮", on:"キュウ", kun:"みや", s:10, ew:"子宮", er:"しきゅう", p:"n"},
+    {k:"筆", on:"ヒツ", kun:"ふで", s:12, ew:"自筆", er:"じひつ", p:"n"},
+    {k:"庫", on:"コ", kun:"くら", s:10, ew:"金庫", er:"きんこ", p:"n"},
+    {k:"板", on:"ハン", kun:"いた", s:8, ew:"板", er:"いた", p:"n"},
+    {k:"遊", on:"ユウ", kun:"あそ(ぶ)", s:12, ew:"遊び", er:"あそび", p:"n"},
+    {k:"豆", on:"トウ", kun:"まめ", s:7, ew:"大豆", er:"だいず", p:"n"},
+    {k:"湖", on:"コ", kun:"みずうみ", s:12, ew:"湖", er:"みずうみ", p:"n"},
+    {k:"油", on:"ユ", kun:"あぶら", s:8, ew:"石油", er:"せきゆ", p:"n"},
+    {k:"昭", on:"ショウ", kun:"", s:9, ew:"昭和", er:"しょうわ", p:"n"},
+    {k:"柱", on:"チュウ", kun:"はしら", s:9, ew:"柱", er:"はしら", p:"n"},
+    {k:"炭", on:"タン", kun:"すみ", s:9, ew:"石炭", er:"せきたん", p:"n"},
+    {k:"畑", on:"", kun:"はたけ", s:9, ew:"畑", er:"はたけ", p:"n"},
+    {k:"帳", on:"チョウ", kun:"とばり", s:11, ew:"手帳", er:"てちょう", p:"n"},
   ],
   4: [
-    {k:"不", on:"フ", kun:"", s:4},
-    {k:"欠", on:"ケツ", kun:"か(ける)", s:4},
-    {k:"氏", on:"シ", kun:"うじ", s:4},
-    {k:"札", on:"サツ", kun:"ふだ", s:5},
-    {k:"民", on:"ミン", kun:"たみ", s:5},
-    {k:"辺", on:"ヘン", kun:"あた(り)", s:5},
-    {k:"付", on:"フ", kun:"つ(ける)", s:5},
-    {k:"以", on:"イ", kun:"", s:5},
-    {k:"失", on:"シツ", kun:"うしな(う)", s:5},
-    {k:"必", on:"ヒツ", kun:"かなら(ず)", s:5},
-    {k:"未", on:"ミ", kun:"ま(だ)", s:5},
-    {k:"末", on:"マツ", kun:"すえ", s:5},
-    {k:"要", on:"ヨウ", kun:"い(る)", s:9},
-    {k:"最", on:"サイ", kun:"もっと(も)", s:12},
-    {k:"争", on:"ソウ", kun:"あらそ(う)", s:6},
-    {k:"仲", on:"チュウ", kun:"なか", s:6},
-    {k:"伝", on:"デン", kun:"つた(わる)", s:6},
-    {k:"共", on:"キョウ", kun:"とも", s:6},
-    {k:"好", on:"コウ", kun:"す(く)", s:6},
-    {k:"成", on:"セイ", kun:"な(る)", s:6},
-    {k:"老", on:"ロウ", kun:"", s:6},
-    {k:"位", on:"イ", kun:"くらい", s:7},
-    {k:"低", on:"テイ", kun:"ひく(い)", s:7},
-    {k:"初", on:"ショ", kun:"はじ(め)", s:7},
-    {k:"別", on:"ベツ", kun:"わか(れる)", s:7},
-    {k:"利", on:"リ", kun:"き(く)", s:7},
-    {k:"努", on:"ド", kun:"つと(める)", s:7},
-    {k:"労", on:"ロウ", kun:"いたわ(る)", s:7},
-    {k:"戦", on:"セン", kun:"たたか(う)", s:13},
-    {k:"競", on:"キョウ", kun:"きそ(う)", s:20},
-    {k:"良", on:"リョウ", kun:"よ(い)", s:7},
-    {k:"功", on:"コウ", kun:"", s:5},
-    {k:"特", on:"トク", kun:"", s:10},
-    {k:"便", on:"ベン", kun:"たよ(り)", s:9},
-    {k:"働", on:"ドウ", kun:"はたら(く)", s:13},
-    {k:"令", on:"レイ", kun:"", s:5},
-    {k:"億", on:"オク", kun:"", s:15},
-    {k:"器", on:"キ", kun:"うつわ", s:15},
-    {k:"料", on:"リョウ", kun:"", s:10},
-    {k:"標", on:"ヒョウ", kun:"しるし", s:15},
-    {k:"然", on:"ゼン", kun:"しか", s:12},
-    {k:"熱", on:"ネツ", kun:"あつ(い)", s:15},
-    {k:"課", on:"カ", kun:"", s:15},
-    {k:"輪", on:"リン", kun:"わ", s:15},
-    {k:"選", on:"セン", kun:"えら(ぶ)", s:15},
-    {k:"鏡", on:"キョウ", kun:"かがみ", s:19},
-    {k:"願", on:"ガン", kun:"ねが(う)", s:19},
-    {k:"養", on:"ヨウ", kun:"やしな(う)", s:15},
-    {k:"例", on:"レイ", kun:"たと(える)", s:8},
-    {k:"卒", on:"ソツ", kun:"", s:8},
-    {k:"協", on:"キョウ", kun:"", s:8},
-    {k:"参", on:"サン", kun:"まい(る)", s:8},
-    {k:"周", on:"シュウ", kun:"まわ(り)", s:8},
-    {k:"固", on:"コ", kun:"かた(める)", s:8},
-    {k:"季", on:"キ", kun:"", s:8},
-    {k:"完", on:"カン", kun:"", s:7},
-    {k:"希", on:"キ", kun:"まれ", s:7},
-    {k:"念", on:"ネン", kun:"", s:8},
-    {k:"折", on:"セツ", kun:"お(る)", s:7},
-    {k:"望", on:"ボウ", kun:"のぞ(む)", s:11},
-    {k:"材", on:"ザイ", kun:"", s:7},
-    {k:"束", on:"ソク", kun:"たば", s:7},
-    {k:"松", on:"ショウ", kun:"まつ", s:8},
-    {k:"残", on:"ザン", kun:"のこ(る)", s:10},
-    {k:"求", on:"キュウ", kun:"もと(める)", s:7},
-    {k:"的", on:"テキ", kun:"まと", s:8},
-    {k:"約", on:"ヤク", kun:"", s:9},
-    {k:"芸", on:"ゲイ", kun:"", s:7},
-    {k:"信", on:"シン", kun:"", s:9},
-    {k:"勇", on:"ユウ", kun:"いさ(む)", s:9},
-    {k:"単", on:"タン", kun:"", s:9},
-    {k:"司", on:"シ", kun:"つかさど(る)", s:5},
-    {k:"変", on:"ヘン", kun:"か(わる)", s:9},
-    {k:"夫", on:"フウ", kun:"おっと", s:4},
-    {k:"建", on:"ケン", kun:"た(てる)", s:9},
-    {k:"昨", on:"サク", kun:"", s:9},
-    {k:"法", on:"ホウ", kun:"", s:8},
-    {k:"泣", on:"キュウ", kun:"な(く)", s:8},
-    {k:"浅", on:"セン", kun:"あさ(い)", s:9},
-    {k:"英", on:"エイ", kun:"", s:8},
-    {k:"軍", on:"グン", kun:"", s:9},
-    {k:"飯", on:"ハン", kun:"めし", s:12},
-    {k:"典", on:"テン", kun:"", s:8},
-    {k:"府", on:"フ", kun:"", s:8},
-    {k:"治", on:"ジ", kun:"なお(る)", s:8},
-    {k:"浴", on:"ヨク", kun:"あ(びる)", s:10},
-    {k:"笑", on:"ショウ", kun:"わら(う)", s:10},
-    {k:"辞", on:"ジ", kun:"や(める)", s:13},
-    {k:"関", on:"カン", kun:"かか(わる)", s:14},
-    {k:"阪", on:"ハン", kun:"さか", s:7},
-    {k:"側", on:"ソク", kun:"がわ", s:11},
-    {k:"兵", on:"ヘイ", kun:"", s:7},
-    {k:"塩", on:"エン", kun:"しお", s:13},
-    {k:"席", on:"セキ", kun:"", s:10},
-    {k:"敗", on:"ハイ", kun:"やぶ(れる)", s:11},
-    {k:"果", on:"カ", kun:"くだ", s:8},
-    {k:"栄", on:"エイ", kun:"さか(える)", s:9},
-    {k:"梅", on:"バイ", kun:"うめ", s:10},
-    {k:"無", on:"ム", kun:"な(い)", s:12},
-    {k:"結", on:"ケツ", kun:"むす(ぶ)", s:12},
-    {k:"官", on:"カン", kun:"", s:8},
-    {k:"察", on:"サツ", kun:"さっ", s:14},
-    {k:"底", on:"テイ", kun:"そこ", s:8},
-    {k:"愛", on:"アイ", kun:"まな", s:13},
-    {k:"覚", on:"カク", kun:"おぼ(える)", s:12},
-    {k:"説", on:"セツ", kun:"と(く)", s:14},
-    {k:"訓", on:"クン", kun:"よ(む)", s:10},
-    {k:"試", on:"シ", kun:"こころ(みる)", s:13},
-    {k:"種", on:"シュ", kun:"たね", s:14},
-    {k:"達", on:"タツ", kun:"たち", s:12},
-    {k:"類", on:"ルイ", kun:"たぐ(い)", s:18},
-    {k:"借", on:"シャク", kun:"か(りる)", s:10},
-    {k:"焼", on:"ショウ", kun:"や(く)", s:12},
-    {k:"験", on:"ケン", kun:"ため(す)", s:18},
-    {k:"静", on:"セイ", kun:"しず", s:14},
-    {k:"加", on:"カ", kun:"くわ(える)", s:5},
-    {k:"節", on:"セツ", kun:"ふし", s:13},
-    {k:"順", on:"ジュン", kun:"", s:12},
-    {k:"徒", on:"ト", kun:"", s:10},
-    {k:"改", on:"カイ", kun:"あらた(める)", s:7},
-    {k:"続", on:"ゾク", kun:"つづ(く)", s:13},
-    {k:"連", on:"レン", kun:"つ(れる)", s:10},
-    {k:"機", on:"キ", kun:"はた", s:16},
-    {k:"飛", on:"ヒ", kun:"と(ぶ)", s:9},
-    {k:"害", on:"ガイ", kun:"", s:10},
-    {k:"械", on:"カイ", kun:"かせ", s:11},
-    {k:"産", on:"サン", kun:"う(む)", s:11},
-    {k:"議", on:"ギ", kun:"", s:20},
-    {k:"挙", on:"キョ", kun:"あ(げる)", s:10},
-    {k:"岡", on:"コウ", kun:"おか", s:8},
-    {k:"省", on:"ショウ", kun:"はぶ(く)", s:9},
-    {k:"各", on:"カク", kun:"おの", s:6},
-    {k:"案", on:"アン", kun:"", s:10},
-    {k:"置", on:"チ", kun:"お(く)", s:13},
-    {k:"副", on:"フク", kun:"", s:11},
-    {k:"観", on:"カン", kun:"み(る)", s:18},
-    {k:"賀", on:"ガ", kun:"", s:12},
-    {k:"崎", on:"キ", kun:"さき", s:11},
-    {k:"城", on:"ジョウ", kun:"しろ", s:9},
-    {k:"祝", on:"シュク", kun:"いわ(う)", s:9},
-    {k:"差", on:"サ", kun:"さ(す)", s:10},
-    {k:"管", on:"カン", kun:"くだ", s:14},
-    {k:"量", on:"リョウ", kun:"はか(る)", s:12},
-    {k:"票", on:"ヒョウ", kun:"", s:11},
-    {k:"景", on:"ケイ", kun:"", s:12},
-    {k:"候", on:"コウ", kun:"", s:10},
-    {k:"満", on:"マン", kun:"み(ちる)", s:12},
-    {k:"印", on:"イン", kun:"しるし", s:6},
-    {k:"極", on:"キョク", kun:"きわ(める)", s:12},
-    {k:"健", on:"ケン", kun:"", s:11},
-    {k:"康", on:"コウ", kun:"", s:11},
-    {k:"給", on:"キュウ", kun:"たま(う)", s:12},
-    {k:"児", on:"ジ", kun:"こ", s:7},
-    {k:"冷", on:"レイ", kun:"つめ(たい)", s:7},
-    {k:"博", on:"ハク", kun:"", s:12},
-    {k:"清", on:"セイ", kun:"きよ(い)", s:11},
-    {k:"録", on:"ロク", kun:"", s:16},
-    {k:"隊", on:"タイ", kun:"", s:12},
-    {k:"積", on:"セキ", kun:"つ(む)", s:16},
-    {k:"臣", on:"シン", kun:"", s:7},
-    {k:"街", on:"ガイ", kun:"まち", s:12},
-    {k:"旗", on:"キ", kun:"はた", s:14},
-    {k:"照", on:"ショウ", kun:"て(る)", s:13},
-    {k:"倉", on:"ソウ", kun:"くら", s:10},
-    {k:"孫", on:"ソン", kun:"まご", s:10},
-    {k:"巣", on:"ソウ", kun:"す", s:11},
-    {k:"帯", on:"タイ", kun:"おび", s:10},
-    {k:"径", on:"ケイ", kun:"", s:8},
-    {k:"散", on:"サン", kun:"ち(る)", s:12},
-    {k:"菜", on:"サイ", kun:"な", s:11},
-    {k:"貨", on:"カ", kun:"", s:11},
-    {k:"陸", on:"リク", kun:"", s:11},
-    {k:"富", on:"フ", kun:"と(む)", s:12},
-    {k:"徳", on:"トク", kun:"", s:14},
-    {k:"熊", on:"ユウ", kun:"くま", s:14},
-    {k:"奈", on:"ナ", kun:"", s:8},
-    {k:"沖", on:"チュウ", kun:"おき", s:7},
-    {k:"縄", on:"ジョウ", kun:"なわ", s:15},
-    {k:"鹿", on:"ロク", kun:"か", s:11},
-    {k:"漁", on:"ギョ", kun:"あさ(る)", s:14},
-    {k:"香", on:"コウ", kun:"かお(り)", s:9},
-    {k:"兆", on:"チョウ", kun:"きざ(す)", s:6},
-    {k:"阜", on:"フ", kun:"", s:8},
-    {k:"岐", on:"キ", kun:"", s:7},
-    {k:"群", on:"グン", kun:"む(れる)", s:13},
-    {k:"埼", on:"キ", kun:"さい", s:11},
-    {k:"唱", on:"ショウ", kun:"とな(える)", s:11},
-    {k:"包", on:"ホウ", kun:"つつ(む)", s:5},
-    {k:"衣", on:"イ", kun:"ころも", s:6},
-    {k:"潟", on:"セキ", kun:"かた", s:15},
-    {k:"牧", on:"ボク", kun:"まき", s:8},
-    {k:"刷", on:"サツ", kun:"す(る)", s:8},
-    {k:"滋", on:"ジ", kun:"", s:12},
-    {k:"梨", on:"リ", kun:"なし", s:11},
-    {k:"芽", on:"ガ", kun:"め", s:8},
-    {k:"井", on:"ショウ", kun:"い", s:4},
-    {k:"佐", on:"サ", kun:"", s:7},
-    {k:"灯", on:"トウ", kun:"あかり", s:6},
-    {k:"郡", on:"グン", kun:"こおり", s:10},
+    {k:"不", on:"フ", kun:"", s:4, ew:"不明", er:"ふめい", p:"n"},
+    {k:"欠", on:"ケツ", kun:"か(ける)", s:4, ew:"欠点", er:"けってん", p:"n"},
+    {k:"氏", on:"シ", kun:"うじ", s:4, ew:"氏名", er:"しめい", p:"n"},
+    {k:"札", on:"サツ", kun:"ふだ", s:5, ew:"札", er:"ふだ", p:"n"},
+    {k:"民", on:"ミン", kun:"たみ", s:5, ew:"国民", er:"こくみん", p:"n"},
+    {k:"辺", on:"ヘン", kun:"あた(り)", s:5, ew:"辺り", er:"あたり", p:"n"},
+    {k:"付", on:"フ", kun:"つ(ける)", s:5, ew:"付け", er:"つけ", p:"n"},
+    {k:"以", on:"イ", kun:"", s:5, ew:"以上", er:"いじょう", p:"n"},
+    {k:"失", on:"シツ", kun:"うしな(う)", s:5, ew:"失礼", er:"しつれい", p:"n"},
+    {k:"必", on:"ヒツ", kun:"かなら(ず)", s:5, ew:"必要", er:"ひつよう", p:"n"},
+    {k:"未", on:"ミ", kun:"ま(だ)", s:5, ew:"未来", er:"みらい", p:"n"},
+    {k:"末", on:"マツ", kun:"すえ", s:5, ew:"週末", er:"しゅうまつ", p:"n"},
+    {k:"要", on:"ヨウ", kun:"い(る)", s:9, ew:"必要", er:"ひつよう", p:"n"},
+    {k:"最", on:"サイ", kun:"もっと(も)", s:12, ew:"最近", er:"さいきん", p:"n"},
+    {k:"争", on:"ソウ", kun:"あらそ(う)", s:6, ew:"戦争", er:"せんそう", p:"n"},
+    {k:"仲", on:"チュウ", kun:"なか", s:6, ew:"仲間", er:"なかま", p:"n"},
+    {k:"伝", on:"デン", kun:"つた(わる)", s:6, ew:"伝言", er:"でんごん", p:"n"},
+    {k:"共", on:"キョウ", kun:"とも", s:6, ew:"共通", er:"きょうつう", p:"n"},
+    {k:"好", on:"コウ", kun:"す(く)", s:6, ew:"好き", er:"すき", p:"n"},
+    {k:"成", on:"セイ", kun:"な(る)", s:6, ew:"成功", er:"せいこう", p:"n"},
+    {k:"老", on:"ロウ", kun:"", s:6, ew:"老人", er:"ろうじん", p:"n"},
+    {k:"位", on:"イ", kun:"くらい", s:7, ew:"位", er:"くらい", p:"n"},
+    {k:"低", on:"テイ", kun:"ひく(い)", s:7, ew:"最低", er:"さいてい", p:"n"},
+    {k:"初", on:"ショ", kun:"はじ(め)", s:7, ew:"初めて", er:"はじめて", p:"n"},
+    {k:"別", on:"ベツ", kun:"わか(れる)", s:7, ew:"特別", er:"とくべつ", p:"n"},
+    {k:"利", on:"リ", kun:"き(く)", s:7, ew:"利用", er:"りよう", p:"n"},
+    {k:"努", on:"ド", kun:"つと(める)", s:7, ew:"努力", er:"どりょく", p:"n"},
+    {k:"労", on:"ロウ", kun:"いたわ(る)", s:7, ew:"苦労", er:"くろう", p:"n"},
+    {k:"戦", on:"セン", kun:"たたか(う)", s:13, ew:"戦い", er:"たたかい", p:"n"},
+    {k:"競", on:"キョウ", kun:"きそ(う)", s:20, ew:"競争", er:"きょうそう", p:"n"},
+    {k:"良", on:"リョウ", kun:"よ(い)", s:7, ew:"良心", er:"りょうしん", p:"n"},
+    {k:"功", on:"コウ", kun:"", s:5, ew:"成功", er:"せいこう", p:"n"},
+    {k:"特", on:"トク", kun:"", s:10, ew:"特別", er:"とくべつ", p:"n"},
+    {k:"便", on:"ベン", kun:"たよ(り)", s:9, ew:"小便", er:"しょうべん", p:"n"},
+    {k:"働", on:"ドウ", kun:"はたら(く)", s:13, ew:"働き", er:"はたらき", p:"n"},
+    {k:"令", on:"レイ", kun:"", s:5, ew:"命令", er:"めいれい", p:"n"},
+    {k:"億", on:"オク", kun:"", s:15, ew:"一億", er:"いちおく", p:"n"},
+    {k:"器", on:"キ", kun:"うつわ", s:15, ew:"器", er:"うつわ", p:"n"},
+    {k:"料", on:"リョウ", kun:"", s:10, ew:"料理", er:"りょうり", p:"n"},
+    {k:"標", on:"ヒョウ", kun:"しるし", s:15, ew:"目標", er:"もくひょう", p:"n"},
+    {k:"然", on:"ゼン", kun:"しか", s:12, ew:"自然", er:"しぜん", p:"n"},
+    {k:"熱", on:"ネツ", kun:"あつ(い)", s:15, ew:"熱心", er:"ねっしん", p:"n"},
+    {k:"課", on:"カ", kun:"", s:15, ew:"課長", er:"かちょう", p:"n"},
+    {k:"輪", on:"リン", kun:"わ", s:15, ew:"指輪", er:"ゆびわ", p:"n"},
+    {k:"選", on:"セン", kun:"えら(ぶ)", s:15, ew:"選手", er:"せんしゅ", p:"n"},
+    {k:"鏡", on:"キョウ", kun:"かがみ", s:19, ew:"鏡", er:"かがみ", p:"n"},
+    {k:"願", on:"ガン", kun:"ねが(う)", s:19, ew:"願い", er:"ねがい", p:"n"},
+    {k:"養", on:"ヨウ", kun:"やしな(う)", s:15, ew:"養子", er:"ようし", p:"n"},
+    {k:"例", on:"レイ", kun:"たと(える)", s:8, ew:"例えば", er:"たとえば", p:"o"},
+    {k:"卒", on:"ソツ", kun:"", s:8, ew:"卒業", er:"そつぎょう", p:"n"},
+    {k:"協", on:"キョウ", kun:"", s:8, ew:"協会", er:"きょうかい", p:"n"},
+    {k:"参", on:"サン", kun:"まい(る)", s:8, ew:"参加", er:"さんか", p:"n"},
+    {k:"周", on:"シュウ", kun:"まわ(り)", s:8, ew:"周り", er:"まわり", p:"n"},
+    {k:"固", on:"コ", kun:"かた(める)", s:8, ew:"固定", er:"こてい", p:"n"},
+    {k:"季", on:"キ", kun:"", s:8, ew:"季節", er:"きせつ", p:"n"},
+    {k:"完", on:"カン", kun:"", s:7, ew:"完全", er:"かんぜん", p:"n"},
+    {k:"希", on:"キ", kun:"まれ", s:7, ew:"希望", er:"きぼう", p:"n"},
+    {k:"念", on:"ネン", kun:"", s:8, ew:"残念", er:"ざんねん", p:"n"},
+    {k:"折", on:"セツ", kun:"お(る)", s:7, ew:"右折", er:"うせつ", p:"n"},
+    {k:"望", on:"ボウ", kun:"のぞ(む)", s:11, ew:"望み", er:"のぞみ", p:"n"},
+    {k:"材", on:"ザイ", kun:"", s:7, ew:"人材", er:"じんざい", p:"n"},
+    {k:"束", on:"ソク", kun:"たば", s:7, ew:"約束", er:"やくそく", p:"n"},
+    {k:"松", on:"ショウ", kun:"まつ", s:8, ew:"松林", er:"まつばやし", p:"n"},
+    {k:"残", on:"ザン", kun:"のこ(る)", s:10, ew:"残り", er:"のこり", p:"n"},
+    {k:"求", on:"キュウ", kun:"もと(める)", s:7, ew:"要求", er:"ようきゅう", p:"n"},
+    {k:"的", on:"テキ", kun:"まと", s:8, ew:"目的", er:"もくてき", p:"n"},
+    {k:"約", on:"ヤク", kun:"", s:9, ew:"約束", er:"やくそく", p:"n"},
+    {k:"芸", on:"ゲイ", kun:"", s:7, ew:"芸人", er:"げいにん", p:"n"},
+    {k:"信", on:"シン", kun:"", s:9, ew:"信用", er:"しんよう", p:"n"},
+    {k:"勇", on:"ユウ", kun:"いさ(む)", s:9, ew:"勇気", er:"ゆうき", p:"n"},
+    {k:"単", on:"タン", kun:"", s:9, ew:"単語", er:"たんご", p:"n"},
+    {k:"司", on:"シ", kun:"つかさど(る)", s:5, ew:"上司", er:"じょうし", p:"n"},
+    {k:"変", on:"ヘン", kun:"か(わる)", s:9, ew:"大変", er:"たいへん", p:"n"},
+    {k:"夫", on:"フウ", kun:"おっと", s:4, ew:"夫", er:"おっと", p:"n"},
+    {k:"建", on:"ケン", kun:"た(てる)", s:9, ew:"建物", er:"たてもの", p:"n"},
+    {k:"昨", on:"サク", kun:"", s:9, ew:"昨日", er:"きのう", p:"n"},
+    {k:"法", on:"ホウ", kun:"", s:8, ew:"方法", er:"ほうほう", p:"n"},
+    {k:"泣", on:"キュウ", kun:"な(く)", s:8, ew:"泣く", er:"なく", p:"v"},
+    {k:"浅", on:"セン", kun:"あさ(い)", s:9, ew:"浅い", er:"あさい", p:"a"},
+    {k:"英", on:"エイ", kun:"", s:8, ew:"英語", er:"えいご", p:"n"},
+    {k:"軍", on:"グン", kun:"", s:9, ew:"軍人", er:"ぐんじん", p:"n"},
+    {k:"飯", on:"ハン", kun:"めし", s:12, ew:"ご飯", er:"ごはん", p:"n"},
+    {k:"典", on:"テン", kun:"", s:8, ew:"古典", er:"こてん", p:"n"},
+    {k:"府", on:"フ", kun:"", s:8, ew:"府立", er:"ふりつ", p:"n"},
+    {k:"治", on:"ジ", kun:"なお(る)", s:8, ew:"自治", er:"じち", p:"n"},
+    {k:"浴", on:"ヨク", kun:"あ(びる)", s:10, ew:"浴室", er:"よくしつ", p:"n"},
+    {k:"笑", on:"ショウ", kun:"わら(う)", s:10, ew:"笑い", er:"わらい", p:"n"},
+    {k:"辞", on:"ジ", kun:"や(める)", s:13, ew:"辞書", er:"じしょ", p:"n"},
+    {k:"関", on:"カン", kun:"かか(わる)", s:14, ew:"関係", er:"かんけい", p:"n"},
+    {k:"阪", on:"ハン", kun:"さか", s:7, ew:"大阪", er:"おおさか", p:"n"},
+    {k:"側", on:"ソク", kun:"がわ", s:11, ew:"側", er:"がわ", p:"n"},
+    {k:"兵", on:"ヘイ", kun:"", s:7, ew:"兵器", er:"へいき", p:"n"},
+    {k:"塩", on:"エン", kun:"しお", s:13, ew:"塩水", er:"しおみず", p:"n"},
+    {k:"席", on:"セキ", kun:"", s:10, ew:"出席", er:"しゅっせき", p:"n"},
+    {k:"敗", on:"ハイ", kun:"やぶ(れる)", s:11, ew:"失敗", er:"しっぱい", p:"n"},
+    {k:"果", on:"カ", kun:"くだ", s:8, ew:"結果", er:"けっか", p:"n"},
+    {k:"栄", on:"エイ", kun:"さか(える)", s:9, ew:"光栄", er:"こうえい", p:"n"},
+    {k:"梅", on:"バイ", kun:"うめ", s:10, ew:"梅酒", er:"うめしゅ", p:"n"},
+    {k:"無", on:"ム", kun:"な(い)", s:12, ew:"無理", er:"むり", p:"n"},
+    {k:"結", on:"ケツ", kun:"むす(ぶ)", s:12, ew:"結果", er:"けっか", p:"n"},
+    {k:"官", on:"カン", kun:"", s:8, ew:"長官", er:"ちょうかん", p:"n"},
+    {k:"察", on:"サツ", kun:"さっ", s:14, ew:"観察", er:"かんさつ", p:"n"},
+    {k:"底", on:"テイ", kun:"そこ", s:8, ew:"底", er:"そこ", p:"n"},
+    {k:"愛", on:"アイ", kun:"まな", s:13, ew:"愛", er:"あい", p:"n"},
+    {k:"覚", on:"カク", kun:"おぼ(える)", s:12, ew:"覚え", er:"おぼえ", p:"n"},
+    {k:"説", on:"セツ", kun:"と(く)", s:14, ew:"説明", er:"せつめい", p:"n"},
+    {k:"訓", on:"クン", kun:"よ(む)", s:10, ew:"訓練", er:"くんれん", p:"n"},
+    {k:"試", on:"シ", kun:"こころ(みる)", s:13, ew:"試合", er:"しあい", p:"n"},
+    {k:"種", on:"シュ", kun:"たね", s:14, ew:"一種", er:"いっしゅ", p:"n"},
+    {k:"達", on:"タツ", kun:"たち", s:12, ew:"友達", er:"ともだち", p:"n"},
+    {k:"類", on:"ルイ", kun:"たぐ(い)", s:18, ew:"人類", er:"じんるい", p:"n"},
+    {k:"借", on:"シャク", kun:"か(りる)", s:10, ew:"借り", er:"かり", p:"n"},
+    {k:"焼", on:"ショウ", kun:"や(く)", s:12, ew:"全焼", er:"ぜんしょう", p:"n"},
+    {k:"験", on:"ケン", kun:"ため(す)", s:18, ew:"体験", er:"たいけん", p:"n"},
+    {k:"静", on:"セイ", kun:"しず", s:14, ew:"静けさ", er:"しずけさ", p:"n"},
+    {k:"加", on:"カ", kun:"くわ(える)", s:5, ew:"参加", er:"さんか", p:"n"},
+    {k:"節", on:"セツ", kun:"ふし", s:13, ew:"関節", er:"かんせつ", p:"n"},
+    {k:"順", on:"ジュン", kun:"", s:12, ew:"手順", er:"てじゅん", p:"n"},
+    {k:"徒", on:"ト", kun:"", s:10, ew:"生徒", er:"せいと", p:"n"},
+    {k:"改", on:"カイ", kun:"あらた(める)", s:7, ew:"改ざん", er:"かいざん", p:"n"},
+    {k:"続", on:"ゾク", kun:"つづ(く)", s:13, ew:"連続", er:"れんぞく", p:"n"},
+    {k:"連", on:"レン", kun:"つ(れる)", s:10, ew:"連中", er:"れんちゅう", p:"n"},
+    {k:"機", on:"キ", kun:"はた", s:16, ew:"機会", er:"きかい", p:"n"},
+    {k:"飛", on:"ヒ", kun:"と(ぶ)", s:9, ew:"飛行", er:"ひこう", p:"n"},
+    {k:"害", on:"ガイ", kun:"", s:10, ew:"害虫", er:"がいちゅう", p:"n"},
+    {k:"械", on:"カイ", kun:"かせ", s:11, ew:"機械", er:"きかい", p:"n"},
+    {k:"産", on:"サン", kun:"う(む)", s:11, ew:"出産", er:"しゅっさん", p:"n"},
+    {k:"議", on:"ギ", kun:"", s:20, ew:"会議", er:"かいぎ", p:"n"},
+    {k:"挙", on:"キョ", kun:"あ(げる)", s:10, ew:"選挙", er:"せんきょ", p:"n"},
+    {k:"岡", on:"コウ", kun:"おか", s:8, ew:"福岡", er:"ふくおか", p:"n"},
+    {k:"省", on:"ショウ", kun:"はぶ(く)", s:9, ew:"反省", er:"はんせい", p:"n"},
+    {k:"各", on:"カク", kun:"おの", s:6, ew:"各国", er:"かっこく", p:"n"},
+    {k:"案", on:"アン", kun:"", s:10, ew:"案内", er:"あんない", p:"n"},
+    {k:"置", on:"チ", kun:"お(く)", s:13, ew:"配置", er:"はいち", p:"n"},
+    {k:"副", on:"フク", kun:"", s:11, ew:"副業", er:"ふくぎょう", p:"n"},
+    {k:"観", on:"カン", kun:"み(る)", s:18, ew:"観察", er:"かんさつ", p:"n"},
+    {k:"賀", on:"ガ", kun:"", s:12, ew:"祝賀", er:"しゅくが", p:"n"},
+    {k:"崎", on:"キ", kun:"さき", s:11, ew:"川崎", er:"かわさき", p:"n"},
+    {k:"城", on:"ジョウ", kun:"しろ", s:9, ew:"城主", er:"じょうしゅ", p:"n"},
+    {k:"祝", on:"シュク", kun:"いわ(う)", s:9, ew:"祝い", er:"いわい", p:"n"},
+    {k:"差", on:"サ", kun:"さ(す)", s:10, ew:"交差", er:"こうさ", p:"n"},
+    {k:"管", on:"カン", kun:"くだ", s:14, ew:"管理", er:"かんり", p:"n"},
+    {k:"量", on:"リョウ", kun:"はか(る)", s:12, ew:"大量", er:"たいりょう", p:"n"},
+    {k:"票", on:"ヒョウ", kun:"", s:11, ew:"投票", er:"とうひょう", p:"n"},
+    {k:"景", on:"ケイ", kun:"", s:12, ew:"景色", er:"けしき", p:"n"},
+    {k:"候", on:"コウ", kun:"", s:10, ew:"天候", er:"てんこう", p:"n"},
+    {k:"満", on:"マン", kun:"み(ちる)", s:12, ew:"満足", er:"まんぞく", p:"n"},
+    {k:"印", on:"イン", kun:"しるし", s:6, ew:"印", er:"しるし", p:"n"},
+    {k:"極", on:"キョク", kun:"きわ(める)", s:12, ew:"極めて", er:"きわめて", p:"o"},
+    {k:"健", on:"ケン", kun:"", s:11, ew:"健康", er:"けんこう", p:"n"},
+    {k:"康", on:"コウ", kun:"", s:11, ew:"健康", er:"けんこう", p:"n"},
+    {k:"給", on:"キュウ", kun:"たま(う)", s:12, ew:"給油", er:"きゅうゆ", p:"n"},
+    {k:"児", on:"ジ", kun:"こ", s:7, ew:"小児", er:"しょうに", p:"n"},
+    {k:"冷", on:"レイ", kun:"つめ(たい)", s:7, ew:"冷静", er:"れいせい", p:"n"},
+    {k:"博", on:"ハク", kun:"", s:12, ew:"博物", er:"はくぶつ", p:"n"},
+    {k:"清", on:"セイ", kun:"きよ(い)", s:11, ew:"清い", er:"きよい", p:"a"},
+    {k:"録", on:"ロク", kun:"", s:16, ew:"記録", er:"きろく", p:"n"},
+    {k:"隊", on:"タイ", kun:"", s:12, ew:"隊長", er:"たいちょう", p:"n"},
+    {k:"積", on:"セキ", kun:"つ(む)", s:16, ew:"積極", er:"せっきょく", p:"n"},
+    {k:"臣", on:"シン", kun:"", s:7, ew:"大臣", er:"だいじん", p:"n"},
+    {k:"街", on:"ガイ", kun:"まち", s:12, ew:"街角", er:"まちかど", p:"n"},
+    {k:"旗", on:"キ", kun:"はた", s:14, ew:"旗", er:"はた", p:"n"},
+    {k:"照", on:"ショウ", kun:"て(る)", s:13, ew:"照明", er:"しょうめい", p:"n"},
+    {k:"倉", on:"ソウ", kun:"くら", s:10, ew:"倉庫", er:"そうこ", p:"n"},
+    {k:"孫", on:"ソン", kun:"まご", s:10, ew:"子孫", er:"しそん", p:"n"},
+    {k:"巣", on:"ソウ", kun:"す", s:11, ew:"古巣", er:"ふるす", p:"n"},
+    {k:"帯", on:"タイ", kun:"おび", s:10, ew:"地帯", er:"ちたい", p:"n"},
+    {k:"径", on:"ケイ", kun:"", s:8, ew:"口径", er:"こうけい", p:"n"},
+    {k:"散", on:"サン", kun:"ち(る)", s:12, ew:"散歩", er:"さんぽ", p:"n"},
+    {k:"菜", on:"サイ", kun:"な", s:11, ew:"野菜", er:"やさい", p:"n"},
+    {k:"貨", on:"カ", kun:"", s:11, ew:"金貨", er:"きんか", p:"n"},
+    {k:"陸", on:"リク", kun:"", s:11, ew:"着陸", er:"ちゃくりく", p:"n"},
+    {k:"富", on:"フ", kun:"と(む)", s:12, ew:"富", er:"とみ", p:"n"},
+    {k:"徳", on:"トク", kun:"", s:14, ew:"道徳", er:"どうとく", p:"n"},
+    {k:"熊", on:"ユウ", kun:"くま", s:14, ew:"熊", er:"くま", p:"n"},
+    {k:"奈", on:"ナ", kun:"", s:8, ew:"奈良", er:"なら", p:"n"},
+    {k:"沖", on:"チュウ", kun:"おき", s:7, ew:"沖縄", er:"おきなわ", p:"n"},
+    {k:"縄", on:"ジョウ", kun:"なわ", s:15, ew:"縄", er:"なわ", p:"n"},
+    {k:"鹿", on:"ロク", kun:"か", s:11, ew:"馬鹿", er:"ばか", p:"n"},
+    {k:"漁", on:"ギョ", kun:"あさ(る)", s:14, ew:"漁る", er:"あさる", p:"v"},
+    {k:"香", on:"コウ", kun:"かお(り)", s:9, ew:"香水", er:"こうすい", p:"n"},
+    {k:"兆", on:"チョウ", kun:"きざ(す)", s:6, ew:"兆候", er:"ちょうこう", p:"n"},
+    {k:"阜", on:"フ", kun:"", s:8, ew:"岐阜", er:"ぎふ", p:"n"},
+    {k:"岐", on:"キ", kun:"", s:7, ew:"分岐", er:"ぶんき", p:"n"},
+    {k:"群", on:"グン", kun:"む(れる)", s:13, ew:"群れ", er:"むれ", p:"n"},
+    {k:"埼", on:"キ", kun:"さい", s:11, ew:"埼玉", er:"さいたま", p:"n"},
+    {k:"唱", on:"ショウ", kun:"とな(える)", s:11, ew:"合唱", er:"がっしょう", p:"n"},
+    {k:"包", on:"ホウ", kun:"つつ(む)", s:5, ew:"小包", er:"こづつみ", p:"n"},
+    {k:"衣", on:"イ", kun:"ころも", s:6, ew:"衣服", er:"いふく", p:"n"},
+    {k:"潟", on:"セキ", kun:"かた", s:15, ew:"新潟", er:"にいがた", p:"n"},
+    {k:"牧", on:"ボク", kun:"まき", s:8, ew:"牧場", er:"ぼくじょう", p:"n"},
+    {k:"刷", on:"サツ", kun:"す(る)", s:8, ew:"印刷", er:"いんさつ", p:"n"},
+    {k:"滋", on:"ジ", kun:"", s:12, ew:"滋養", er:"じよう", p:"n"},
+    {k:"梨", on:"リ", kun:"なし", s:11, ew:"梨", er:"なし", p:"n"},
+    {k:"芽", on:"ガ", kun:"め", s:8, ew:"新芽", er:"しんめ", p:"n"},
+    {k:"井", on:"ショウ", kun:"い", s:4, ew:"天井", er:"てんじょう", p:"n"},
+    {k:"佐", on:"サ", kun:"", s:7, ew:"大佐", er:"たいさ", p:"n"},
+    {k:"灯", on:"トウ", kun:"あかり", s:6, ew:"電灯", er:"でんとう", p:"n"},
+    {k:"郡", on:"グン", kun:"こおり", s:10, ew:"郡部", er:"ぐんぶ", p:"n"},
     {k:"媛", on:"エン", kun:"ひめ", s:12},
     {k:"茨", on:"シ", kun:"いばら", s:9},
     {k:"栃", on:"", kun:"とち", s:9},
   ],
   5: [
-    {k:"久", on:"キュウ", kun:"ひさ(しい)", s:3},
-    {k:"支", on:"シ", kun:"ささ(える)", s:4},
-    {k:"仮", on:"カ", kun:"かり", s:6},
-    {k:"士", on:"シ", kun:"さむらい", s:3},
-    {k:"殺", on:"サツ", kun:"ころ(す)", s:10},
-    {k:"賞", on:"ショウ", kun:"", s:15},
-    {k:"像", on:"ゾウ", kun:"", s:14},
-    {k:"情", on:"ジョウ", kun:"なさけ", s:11},
-    {k:"謝", on:"シャ", kun:"あやま(る)", s:17},
-    {k:"囲", on:"イ", kun:"かこ(む)", s:7},
-    {k:"基", on:"キ", kun:"もと", s:11},
-    {k:"性", on:"セイ", kun:"", s:8},
-    {k:"技", on:"ギ", kun:"わざ", s:7},
-    {k:"格", on:"カク", kun:"", s:10},
-    {k:"能", on:"ノウ", kun:"", s:10},
-    {k:"術", on:"ジュツ", kun:"", s:11},
-    {k:"毒", on:"ドク", kun:"", s:8},
-    {k:"紀", on:"キ", kun:"", s:9},
-    {k:"仏", on:"ブツ", kun:"ほとけ", s:4},
-    {k:"築", on:"チク", kun:"きず(く)", s:16},
-    {k:"喜", on:"キ", kun:"よろこ(ぶ)", s:12},
-    {k:"保", on:"ホ", kun:"たも(つ)", s:9},
-    {k:"弁", on:"ベン", kun:"", s:5},
-    {k:"政", on:"セイ", kun:"", s:9},
-    {k:"留", on:"ル", kun:"と(める)", s:10},
-    {k:"証", on:"ショウ", kun:"あかし", s:12},
-    {k:"険", on:"ケン", kun:"けわ(しい)", s:11},
-    {k:"堂", on:"ドウ", kun:"", s:11},
-    {k:"因", on:"イン", kun:"よ(る)", s:6},
-    {k:"常", on:"ジョウ", kun:"つね", s:11},
-    {k:"識", on:"シキ", kun:"", s:19},
-    {k:"非", on:"ヒ", kun:"", s:8},
-    {k:"告", on:"コク", kun:"つ(げる)", s:7},
-    {k:"報", on:"ホウ", kun:"むく(いる)", s:12},
-    {k:"可", on:"カ", kun:"", s:5},
-    {k:"許", on:"キョ", kun:"ゆる(す)", s:11},
-    {k:"句", on:"ク", kun:"", s:5},
-    {k:"禁", on:"キン", kun:"", s:13},
-    {k:"減", on:"ゲン", kun:"へ(る)", s:12},
-    {k:"容", on:"ヨウ", kun:"", s:10},
-    {k:"布", on:"フ", kun:"ぬの", s:5},
-    {k:"易", on:"イ", kun:"やさ(しい)", s:8},
-    {k:"財", on:"サイ", kun:"", s:10},
-    {k:"歴", on:"レキ", kun:"へ", s:14},
-    {k:"団", on:"ダン", kun:"", s:6},
-    {k:"暴", on:"ボウ", kun:"あば(く)", s:15},
-    {k:"混", on:"コン", kun:"ま(じる)", s:11},
-    {k:"得", on:"トク", kun:"え(る)", s:11},
-    {k:"比", on:"ヒ", kun:"くら(べる)", s:4},
-    {k:"災", on:"サイ", kun:"わざわ(い)", s:7},
-    {k:"率", on:"リツ", kun:"ひき(いる)", s:11},
-    {k:"余", on:"ヨ", kun:"あま(る)", s:7},
-    {k:"確", on:"カク", kun:"たし(か)", s:15},
-    {k:"個", on:"コ", kun:"", s:10},
-    {k:"圧", on:"アツ", kun:"", s:5},
-    {k:"在", on:"ザイ", kun:"", s:6},
-    {k:"夢", on:"ム", kun:"ゆめ", s:13},
-    {k:"厚", on:"コウ", kun:"あつ(い)", s:9},
-    {k:"妻", on:"サイ", kun:"つま", s:8},
-    {k:"犯", on:"ハン", kun:"おか(す)", s:5},
-    {k:"罪", on:"ザイ", kun:"つみ", s:13},
-    {k:"防", on:"ボウ", kun:"ふせ(ぐ)", s:7},
-    {k:"経", on:"ケイ", kun:"た(つ)", s:11},
-    {k:"史", on:"シ", kun:"", s:5},
-    {k:"判", on:"ハン", kun:"", s:7},
-    {k:"制", on:"セイ", kun:"", s:8},
-    {k:"務", on:"ム", kun:"つと(める)", s:11},
-    {k:"査", on:"サ", kun:"", s:9},
-    {k:"総", on:"ソウ", kun:"", s:14},
-    {k:"設", on:"セツ", kun:"もう(ける)", s:11},
-    {k:"資", on:"シ", kun:"", s:13},
-    {k:"件", on:"ケン", kun:"", s:6},
-    {k:"素", on:"^ス", kun:"", s:10},
-    {k:"断", on:"ダン", kun:"ことわ(る)", s:11},
-    {k:"評", on:"ヒョウ", kun:"", s:12},
-    {k:"任", on:"ニン", kun:"まか(せる)", s:6},
-    {k:"検", on:"ケン", kun:"", s:12},
-    {k:"条", on:"ジョウ", kun:"", s:7},
-    {k:"責", on:"セキ", kun:"せ(める)", s:11},
-    {k:"増", on:"ゾウ", kun:"ふ(える)", s:14},
-    {k:"税", on:"ゼイ", kun:"", s:12},
-    {k:"解", on:"カイ", kun:"と(く)", s:13},
-    {k:"際", on:"サイ", kun:"きわ", s:14},
-    {k:"義", on:"ギ", kun:"", s:13},
-    {k:"過", on:"カ", kun:"す(ぎる)", s:12},
-    {k:"費", on:"ヒ", kun:"つい(やす)", s:12},
-    {k:"価", on:"カ", kun:"あたい", s:8},
-    {k:"勢", on:"セイ", kun:"いきお(い)", s:13},
-    {k:"営", on:"エイ", kun:"いとな(む)", s:12},
-    {k:"示", on:"ジ", kun:"しめ(す)", s:5},
-    {k:"統", on:"トウ", kun:"す(べる)", s:12},
-    {k:"領", on:"リョウ", kun:"", s:14},
-    {k:"応", on:"オウ", kun:"", s:7},
-    {k:"提", on:"テイ", kun:"", s:12},
-    {k:"状", on:"ジョウ", kun:"", s:7},
-    {k:"態", on:"タイ", kun:"わざ(と)", s:14},
-    {k:"停", on:"テイ", kun:"", s:11},
-    {k:"職", on:"ショク", kun:"", s:18},
-    {k:"規", on:"キ", kun:"", s:11},
-    {k:"護", on:"ゴ", kun:"", s:20},
-    {k:"演", on:"エン", kun:"", s:14},
-    {k:"師", on:"シ", kun:"", s:10},
-    {k:"準", on:"ジュン", kun:"", s:13},
-    {k:"則", on:"ソク", kun:"のっと(る)", s:9},
-    {k:"備", on:"ビ", kun:"そな(える)", s:12},
-    {k:"導", on:"ドウ", kun:"みちび(く)", s:15},
-    {k:"幹", on:"カン", kun:"みき", s:13},
-    {k:"張", on:"チョウ", kun:"は(る)", s:11},
-    {k:"現", on:"ゲン", kun:"あらわ(れる)", s:11},
-    {k:"額", on:"ガク", kun:"ひたい", s:18},
-    {k:"製", on:"セイ", kun:"", s:14},
-    {k:"輸", on:"ユ", kun:"", s:16},
-    {k:"燃", on:"ネン", kun:"も(える)", s:16},
-    {k:"型", on:"ケイ", kun:"かた", s:9},
-    {k:"象", on:"ショウ", kun:"", s:12},
-    {k:"境", on:"キョウ", kun:"さかい", s:14},
-    {k:"武", on:"ブ", kun:"たけ", s:8},
-    {k:"質", on:"シツ", kun:"", s:15},
-    {k:"述", on:"ジュツ", kun:"の(べる)", s:8},
-    {k:"限", on:"ゲン", kun:"かぎ(る)", s:9},
-    {k:"構", on:"コウ", kun:"かま(える)", s:14},
-    {k:"効", on:"コウ", kun:"き(く)", s:8},
-    {k:"属", on:"ゾク", kun:"", s:12},
-    {k:"慣", on:"カン", kun:"な(れる)", s:14},
-    {k:"豊", on:"ホウ", kun:"ゆた(か)", s:13},
-    {k:"肥", on:"ヒ", kun:"こ(える)", s:8},
-    {k:"居", on:"キョ", kun:"い(る)", s:8},
-    {k:"造", on:"ゾウ", kun:"つく(る)", s:10},
-    {k:"授", on:"ジュ", kun:"さず(ける)", s:11},
-    {k:"復", on:"フク", kun:"", s:12},
-    {k:"往", on:"オウ", kun:"", s:8},
-    {k:"貯", on:"チョ", kun:"たくわ(える)", s:12},
-    {k:"故", on:"コ", kun:"ゆえ", s:9},
-    {k:"河", on:"カ", kun:"かわ", s:8},
-    {k:"再", on:"サ", kun:"ふたた(び)", s:6},
-    {k:"接", on:"セツ", kun:"つ(ぐ)", s:11},
-    {k:"独", on:"ドク", kun:"ひと(り)", s:9},
-    {k:"招", on:"ショウ", kun:"まね(く)", s:8},
-    {k:"織", on:"シキ", kun:"お(る)", s:18},
-    {k:"貸", on:"タイ", kun:"か(す)", s:12},
-    {k:"迷", on:"メイ", kun:"まよ(う)", s:9},
-    {k:"逆", on:"ギャク", kun:"さか", s:9},
-    {k:"潔", on:"ケツ", kun:"いさぎよ(い)", s:15},
-    {k:"修", on:"シュウ", kun:"おさ(める)", s:10},
-    {k:"婦", on:"フ", kun:"", s:11},
-    {k:"益", on:"エキ", kun:"", s:10},
-    {k:"移", on:"イ", kun:"うつ(る)", s:11},
-    {k:"程", on:"テイ", kun:"ほど", s:12},
-    {k:"精", on:"セイ", kun:"", s:14},
-    {k:"絶", on:"ゼツ", kun:"た(える)", s:12},
-    {k:"略", on:"リャク", kun:"", s:11},
-    {k:"航", on:"コウ", kun:"", s:10},
-    {k:"寄", on:"キ", kun:"よ(る)", s:11},
-    {k:"快", on:"カイ", kun:"こころよ(い)", s:7},
-    {k:"版", on:"ハン", kun:"", s:8},
-    {k:"貧", on:"ビン", kun:"まず(しい)", s:11},
-    {k:"適", on:"テキ", kun:"", s:14},
-    {k:"編", on:"ヘン", kun:"あ(む)", s:15},
-    {k:"救", on:"キュウ", kun:"すく(う)", s:11},
-    {k:"粉", on:"フン", kun:"こな", s:10},
-    {k:"脈", on:"ミャク", kun:"", s:10},
-    {k:"似", on:"ネ", kun:"に(る)", s:7},
-    {k:"均", on:"キン", kun:"ひと", s:7},
-    {k:"墓", on:"ボ", kun:"はか", s:13},
-    {k:"序", on:"ジョ", kun:"つい(で)", s:7},
-    {k:"志", on:"シ", kun:"こころざし", s:7},
-    {k:"採", on:"サイ", kun:"と(る)", s:11},
-    {k:"桜", on:"オウ", kun:"さくら", s:10},
-    {k:"永", on:"エイ", kun:"", s:5},
-    {k:"液", on:"エキ", kun:"", s:11},
-    {k:"眼", on:"ガン", kun:"め", s:11},
-    {k:"祖", on:"ソ", kun:"", s:9},
-    {k:"績", on:"セキ", kun:"", s:17},
-    {k:"興", on:"キョウ", kun:"", s:16},
-    {k:"衛", on:"エイ", kun:"", s:16},
-    {k:"複", on:"フク", kun:"", s:14},
-    {k:"雑", on:"ザツ", kun:"", s:14},
-    {k:"賛", on:"サン", kun:"", s:15},
-    {k:"酸", on:"サン", kun:"す(い)", s:14},
-    {k:"飼", on:"シ", kun:"か(う)", s:13},
-    {k:"損", on:"ソン", kun:"そこ(なう)", s:13},
-    {k:"枝", on:"シ", kun:"えだ", s:8},
-    {k:"測", on:"ソク", kun:"はか(る)", s:12},
-    {k:"破", on:"ハ", kun:"やぶ(る)", s:10},
-    {k:"舎", on:"シャ", kun:"", s:8},
-    {k:"講", on:"コウ", kun:"", s:17},
-    {k:"銅", on:"ドウ", kun:"あかがね", s:14},
-    {k:"旧", on:"キュウ", kun:"", s:5},
-    {k:"貿", on:"ボウ", kun:"", s:12},
-    {k:"刊", on:"カン", kun:"", s:5},
-    {k:"鉱", on:"コウ", kun:"あらがね", s:13},
-    {k:"綿", on:"メン", kun:"わた", s:14},
-    {k:"耕", on:"コウ", kun:"たがや(す)", s:10},
+    {k:"久", on:"キュウ", kun:"ひさ(しい)", s:3, ew:"久しい", er:"ひさしい", p:"a"},
+    {k:"支", on:"シ", kun:"ささ(える)", s:4, ew:"支配", er:"しはい", p:"n"},
+    {k:"仮", on:"カ", kun:"かり", s:6, ew:"仮定", er:"かてい", p:"n"},
+    {k:"士", on:"シ", kun:"さむらい", s:3, ew:"博士", er:"はかせ", p:"n"},
+    {k:"殺", on:"サツ", kun:"ころ(す)", s:10, ew:"殺人", er:"さつじん", p:"n"},
+    {k:"賞", on:"ショウ", kun:"", s:15, ew:"賞金", er:"しょうきん", p:"n"},
+    {k:"像", on:"ゾウ", kun:"", s:14, ew:"想像", er:"そうぞう", p:"n"},
+    {k:"情", on:"ジョウ", kun:"なさけ", s:11, ew:"情報", er:"じょうほう", p:"n"},
+    {k:"謝", on:"シャ", kun:"あやま(る)", s:17, ew:"感謝", er:"かんしゃ", p:"n"},
+    {k:"囲", on:"イ", kun:"かこ(む)", s:7, ew:"囲い", er:"かこい", p:"n"},
+    {k:"基", on:"キ", kun:"もと", s:11, ew:"基本", er:"きほん", p:"n"},
+    {k:"性", on:"セイ", kun:"", s:8, ew:"女性", er:"じょせい", p:"n"},
+    {k:"技", on:"ギ", kun:"わざ", s:7, ew:"技術", er:"ぎじゅつ", p:"n"},
+    {k:"格", on:"カク", kun:"", s:10, ew:"人格", er:"じんかく", p:"n"},
+    {k:"能", on:"ノウ", kun:"", s:10, ew:"能力", er:"のうりょく", p:"n"},
+    {k:"術", on:"ジュツ", kun:"", s:11, ew:"手術", er:"しゅじゅつ", p:"n"},
+    {k:"毒", on:"ドク", kun:"", s:8, ew:"中毒", er:"ちゅうどく", p:"n"},
+    {k:"紀", on:"キ", kun:"", s:9, ew:"世紀", er:"せいき", p:"n"},
+    {k:"仏", on:"ブツ", kun:"ほとけ", s:4, ew:"仏教", er:"ぶっきょう", p:"n"},
+    {k:"築", on:"チク", kun:"きず(く)", s:16, ew:"建築", er:"けんちく", p:"n"},
+    {k:"喜", on:"キ", kun:"よろこ(ぶ)", s:12, ew:"喜び", er:"よろこび", p:"n"},
+    {k:"保", on:"ホ", kun:"たも(つ)", s:9, ew:"保護", er:"ほご", p:"n"},
+    {k:"弁", on:"ベン", kun:"", s:5, ew:"弁護", er:"べんご", p:"n"},
+    {k:"政", on:"セイ", kun:"", s:9, ew:"政府", er:"せいふ", p:"n"},
+    {k:"留", on:"ル", kun:"と(める)", s:10, ew:"留守", er:"るす", p:"n"},
+    {k:"証", on:"ショウ", kun:"あかし", s:12, ew:"証明", er:"しょうめい", p:"n"},
+    {k:"険", on:"ケン", kun:"けわ(しい)", s:11, ew:"保険", er:"ほけん", p:"n"},
+    {k:"堂", on:"ドウ", kun:"", s:11, ew:"食堂", er:"しょくどう", p:"n"},
+    {k:"因", on:"イン", kun:"よ(る)", s:6, ew:"原因", er:"げんいん", p:"n"},
+    {k:"常", on:"ジョウ", kun:"つね", s:11, ew:"正常", er:"せいじょう", p:"n"},
+    {k:"識", on:"シキ", kun:"", s:19, ew:"知識", er:"ちしき", p:"n"},
+    {k:"非", on:"ヒ", kun:"", s:8, ew:"非常", er:"ひじょう", p:"n"},
+    {k:"告", on:"コク", kun:"つ(げる)", s:7, ew:"告白", er:"こくはく", p:"n"},
+    {k:"報", on:"ホウ", kun:"むく(いる)", s:12, ew:"情報", er:"じょうほう", p:"n"},
+    {k:"可", on:"カ", kun:"", s:5, ew:"可能", er:"かのう", p:"n"},
+    {k:"許", on:"キョ", kun:"ゆる(す)", s:11, ew:"許可", er:"きょか", p:"n"},
+    {k:"句", on:"ク", kun:"", s:5, ew:"文句", er:"もんく", p:"n"},
+    {k:"禁", on:"キン", kun:"", s:13, ew:"禁止", er:"きんし", p:"n"},
+    {k:"減", on:"ゲン", kun:"へ(る)", s:12, ew:"加減", er:"かげん", p:"n"},
+    {k:"容", on:"ヨウ", kun:"", s:10, ew:"内容", er:"ないよう", p:"n"},
+    {k:"布", on:"フ", kun:"ぬの", s:5, ew:"財布", er:"さいふ", p:"n"},
+    {k:"易", on:"イ", kun:"やさ(しい)", s:8, ew:"易しい", er:"やさしい", p:"a"},
+    {k:"財", on:"サイ", kun:"", s:10, ew:"財産", er:"ざいさん", p:"n"},
+    {k:"歴", on:"レキ", kun:"へ", s:14, ew:"歴史", er:"れきし", p:"n"},
+    {k:"団", on:"ダン", kun:"", s:6, ew:"集団", er:"しゅうだん", p:"n"},
+    {k:"暴", on:"ボウ", kun:"あば(く)", s:15, ew:"暴力", er:"ぼうりょく", p:"n"},
+    {k:"混", on:"コン", kun:"ま(じる)", s:11, ew:"混入", er:"こんにゅう", p:"n"},
+    {k:"得", on:"トク", kun:"え(る)", s:11, ew:"取得", er:"しゅとく", p:"n"},
+    {k:"比", on:"ヒ", kun:"くら(べる)", s:4, ew:"比べ", er:"くらべ", p:"n"},
+    {k:"災", on:"サイ", kun:"わざわ(い)", s:7, ew:"災い", er:"わざわい", p:"n"},
+    {k:"率", on:"リツ", kun:"ひき(いる)", s:11, ew:"率直", er:"そっちょく", p:"n"},
+    {k:"余", on:"ヨ", kun:"あま(る)", s:7, ew:"余地", er:"よち", p:"n"},
+    {k:"確", on:"カク", kun:"たし(か)", s:15, ew:"正確", er:"せいかく", p:"n"},
+    {k:"個", on:"コ", kun:"", s:10, ew:"個人", er:"こじん", p:"n"},
+    {k:"圧", on:"アツ", kun:"", s:5, ew:"圧力", er:"あつりょく", p:"n"},
+    {k:"在", on:"ザイ", kun:"", s:6, ew:"現在", er:"げんざい", p:"n"},
+    {k:"夢", on:"ム", kun:"ゆめ", s:13, ew:"夢", er:"ゆめ", p:"n"},
+    {k:"厚", on:"コウ", kun:"あつ(い)", s:9, ew:"厚い", er:"あつい", p:"a"},
+    {k:"妻", on:"サイ", kun:"つま", s:8, ew:"妻", er:"つま", p:"n"},
+    {k:"犯", on:"ハン", kun:"おか(す)", s:5, ew:"犯人", er:"はんにん", p:"n"},
+    {k:"罪", on:"ザイ", kun:"つみ", s:13, ew:"罪", er:"つみ", p:"n"},
+    {k:"防", on:"ボウ", kun:"ふせ(ぐ)", s:7, ew:"国防", er:"こくぼう", p:"n"},
+    {k:"経", on:"ケイ", kun:"た(つ)", s:11, ew:"経験", er:"けいけん", p:"n"},
+    {k:"史", on:"シ", kun:"", s:5, ew:"史上", er:"しじょう", p:"n"},
+    {k:"判", on:"ハン", kun:"", s:7, ew:"判事", er:"はんじ", p:"n"},
+    {k:"制", on:"セイ", kun:"", s:8, ew:"強制", er:"きょうせい", p:"n"},
+    {k:"務", on:"ム", kun:"つと(める)", s:11, ew:"任務", er:"にんむ", p:"n"},
+    {k:"査", on:"サ", kun:"", s:9, ew:"調査", er:"ちょうさ", p:"n"},
+    {k:"総", on:"ソウ", kun:"", s:14, ew:"総力", er:"そうりょく", p:"n"},
+    {k:"設", on:"セツ", kun:"もう(ける)", s:11, ew:"設計", er:"せっけい", p:"n"},
+    {k:"資", on:"シ", kun:"", s:13, ew:"資金", er:"しきん", p:"n"},
+    {k:"件", on:"ケン", kun:"", s:6, ew:"事件", er:"じけん", p:"n"},
+    {k:"素", on:"^ス", kun:"", s:10, ew:"素人", er:"しろうと", p:"n"},
+    {k:"断", on:"ダン", kun:"ことわ(る)", s:11, ew:"決断", er:"けつだん", p:"n"},
+    {k:"評", on:"ヒョウ", kun:"", s:12, ew:"評価", er:"ひょうか", p:"n"},
+    {k:"任", on:"ニン", kun:"まか(せる)", s:6, ew:"責任", er:"せきにん", p:"n"},
+    {k:"検", on:"ケン", kun:"", s:12, ew:"検査", er:"けんさ", p:"n"},
+    {k:"条", on:"ジョウ", kun:"", s:7, ew:"条件", er:"じょうけん", p:"n"},
+    {k:"責", on:"セキ", kun:"せ(める)", s:11, ew:"責任", er:"せきにん", p:"n"},
+    {k:"増", on:"ゾウ", kun:"ふ(える)", s:14, ew:"増加", er:"ぞうか", p:"n"},
+    {k:"税", on:"ゼイ", kun:"", s:12, ew:"税金", er:"ぜいきん", p:"n"},
+    {k:"解", on:"カイ", kun:"と(く)", s:13, ew:"理解", er:"りかい", p:"n"},
+    {k:"際", on:"サイ", kun:"きわ", s:14, ew:"実際", er:"じっさい", p:"n"},
+    {k:"義", on:"ギ", kun:"", s:13, ew:"正義", er:"せいぎ", p:"n"},
+    {k:"過", on:"カ", kun:"す(ぎる)", s:12, ew:"過去", er:"かこ", p:"n"},
+    {k:"費", on:"ヒ", kun:"つい(やす)", s:12, ew:"費用", er:"ひよう", p:"n"},
+    {k:"価", on:"カ", kun:"あたい", s:8, ew:"高価", er:"こうか", p:"n"},
+    {k:"勢", on:"セイ", kun:"いきお(い)", s:13, ew:"勢い", er:"いきおい", p:"n"},
+    {k:"営", on:"エイ", kun:"いとな(む)", s:12, ew:"経営", er:"けいえい", p:"n"},
+    {k:"示", on:"ジ", kun:"しめ(す)", s:5, ew:"指示", er:"しじ", p:"n"},
+    {k:"統", on:"トウ", kun:"す(べる)", s:12, ew:"統計", er:"とうけい", p:"n"},
+    {k:"領", on:"リョウ", kun:"", s:14, ew:"領土", er:"りょうど", p:"n"},
+    {k:"応", on:"オウ", kun:"", s:7, ew:"応答", er:"おうとう", p:"n"},
+    {k:"提", on:"テイ", kun:"", s:12, ew:"提案", er:"ていあん", p:"n"},
+    {k:"状", on:"ジョウ", kun:"", s:7, ew:"状態", er:"じょうたい", p:"n"},
+    {k:"態", on:"タイ", kun:"わざ(と)", s:14, ew:"状態", er:"じょうたい", p:"n"},
+    {k:"停", on:"テイ", kun:"", s:11, ew:"停止", er:"ていし", p:"n"},
+    {k:"職", on:"ショク", kun:"", s:18, ew:"職人", er:"しょくにん", p:"n"},
+    {k:"規", on:"キ", kun:"", s:11, ew:"規則", er:"きそく", p:"n"},
+    {k:"護", on:"ゴ", kun:"", s:20, ew:"弁護", er:"べんご", p:"n"},
+    {k:"演", on:"エン", kun:"", s:14, ew:"演出", er:"えんしゅつ", p:"n"},
+    {k:"師", on:"シ", kun:"", s:10, ew:"教師", er:"きょうし", p:"n"},
+    {k:"準", on:"ジュン", kun:"", s:13, ew:"準備", er:"じゅんび", p:"n"},
+    {k:"則", on:"ソク", kun:"のっと(る)", s:9, ew:"規則", er:"きそく", p:"n"},
+    {k:"備", on:"ビ", kun:"そな(える)", s:12, ew:"準備", er:"じゅんび", p:"n"},
+    {k:"導", on:"ドウ", kun:"みちび(く)", s:15, ew:"指導", er:"しどう", p:"n"},
+    {k:"幹", on:"カン", kun:"みき", s:13, ew:"幹部", er:"かんぶ", p:"n"},
+    {k:"張", on:"チョウ", kun:"は(る)", s:11, ew:"主張", er:"しゅちょう", p:"n"},
+    {k:"現", on:"ゲン", kun:"あらわ(れる)", s:11, ew:"現場", er:"げんば", p:"n"},
+    {k:"額", on:"ガク", kun:"ひたい", s:18, ew:"額", er:"ひたい", p:"n"},
+    {k:"製", on:"セイ", kun:"", s:14, ew:"製作", er:"せいさく", p:"n"},
+    {k:"輸", on:"ユ", kun:"", s:16, ew:"輸送", er:"ゆそう", p:"n"},
+    {k:"燃", on:"ネン", kun:"も(える)", s:16, ew:"燃料", er:"ねんりょう", p:"n"},
+    {k:"型", on:"ケイ", kun:"かた", s:9, ew:"小型", er:"こがた", p:"n"},
+    {k:"象", on:"ショウ", kun:"", s:12, ew:"対象", er:"たいしょう", p:"n"},
+    {k:"境", on:"キョウ", kun:"さかい", s:14, ew:"国境", er:"こっきょう", p:"n"},
+    {k:"武", on:"ブ", kun:"たけ", s:8, ew:"武器", er:"ぶき", p:"n"},
+    {k:"質", on:"シツ", kun:"", s:15, ew:"質問", er:"しつもん", p:"n"},
+    {k:"述", on:"ジュツ", kun:"の(べる)", s:8, ew:"記述", er:"きじゅつ", p:"n"},
+    {k:"限", on:"ゲン", kun:"かぎ(る)", s:9, ew:"限り", er:"かぎり", p:"n"},
+    {k:"構", on:"コウ", kun:"かま(える)", s:14, ew:"結構", er:"けっこう", p:"n"},
+    {k:"効", on:"コウ", kun:"き(く)", s:8, ew:"効果", er:"こうか", p:"n"},
+    {k:"属", on:"ゾク", kun:"", s:12, ew:"金属", er:"きんぞく", p:"n"},
+    {k:"慣", on:"カン", kun:"な(れる)", s:14, ew:"慣れ", er:"なれ", p:"n"},
+    {k:"豊", on:"ホウ", kun:"ゆた(か)", s:13, ew:"豊富", er:"ほうふ", p:"n"},
+    {k:"肥", on:"ヒ", kun:"こ(える)", s:8, ew:"肥やし", er:"こやし", p:"n"},
+    {k:"居", on:"キョ", kun:"い(る)", s:8, ew:"長居", er:"ながい", p:"n"},
+    {k:"造", on:"ゾウ", kun:"つく(る)", s:10, ew:"改造", er:"かいぞう", p:"n"},
+    {k:"授", on:"ジュ", kun:"さず(ける)", s:11, ew:"教授", er:"きょうじゅ", p:"n"},
+    {k:"復", on:"フク", kun:"", s:12, ew:"回復", er:"かいふく", p:"n"},
+    {k:"往", on:"オウ", kun:"", s:8, ew:"往生", er:"おうじょう", p:"n"},
+    {k:"貯", on:"チョ", kun:"たくわ(える)", s:12, ew:"貯金", er:"ちょきん", p:"n"},
+    {k:"故", on:"コ", kun:"ゆえ", s:9, ew:"事故", er:"じこ", p:"n"},
+    {k:"河", on:"カ", kun:"かわ", s:8, ew:"銀河", er:"ぎんが", p:"n"},
+    {k:"再", on:"サ", kun:"ふたた(び)", s:6, ew:"再生", er:"さいせい", p:"n"},
+    {k:"接", on:"セツ", kun:"つ(ぐ)", s:11, ew:"接近", er:"せっきん", p:"n"},
+    {k:"独", on:"ドク", kun:"ひと(り)", s:9, ew:"独立", er:"どくりつ", p:"n"},
+    {k:"招", on:"ショウ", kun:"まね(く)", s:8, ew:"招待", er:"しょうたい", p:"n"},
+    {k:"織", on:"シキ", kun:"お(る)", s:18, ew:"組織", er:"そしき", p:"n"},
+    {k:"貸", on:"タイ", kun:"か(す)", s:12, ew:"貸し", er:"かし", p:"n"},
+    {k:"迷", on:"メイ", kun:"まよ(う)", s:9, ew:"迷子", er:"まいご", p:"n"},
+    {k:"逆", on:"ギャク", kun:"さか", s:9, ew:"反逆", er:"はんぎゃく", p:"n"},
+    {k:"潔", on:"ケツ", kun:"いさぎよ(い)", s:15, ew:"潔白", er:"けっぱく", p:"n"},
+    {k:"修", on:"シュウ", kun:"おさ(める)", s:10, ew:"修正", er:"しゅうせい", p:"n"},
+    {k:"婦", on:"フ", kun:"", s:11, ew:"婦人", er:"ふじん", p:"n"},
+    {k:"益", on:"エキ", kun:"", s:10, ew:"利益", er:"りえき", p:"n"},
+    {k:"移", on:"イ", kun:"うつ(る)", s:11, ew:"移動", er:"いどう", p:"n"},
+    {k:"程", on:"テイ", kun:"ほど", s:12, ew:"程度", er:"ていど", p:"n"},
+    {k:"精", on:"セイ", kun:"", s:14, ew:"精神", er:"せいしん", p:"n"},
+    {k:"絶", on:"ゼツ", kun:"た(える)", s:12, ew:"絶対", er:"ぜったい", p:"n"},
+    {k:"略", on:"リャク", kun:"", s:11, ew:"戦略", er:"せんりゃく", p:"n"},
+    {k:"航", on:"コウ", kun:"", s:10, ew:"航空", er:"こうくう", p:"n"},
+    {k:"寄", on:"キ", kun:"よ(る)", s:11, ew:"寄生", er:"きせい", p:"n"},
+    {k:"快", on:"カイ", kun:"こころよ(い)", s:7, ew:"快い", er:"こころよい", p:"a"},
+    {k:"版", on:"ハン", kun:"", s:8, ew:"出版", er:"しゅっぱん", p:"n"},
+    {k:"貧", on:"ビン", kun:"まず(しい)", s:11, ew:"貧しい", er:"まずしい", p:"a"},
+    {k:"適", on:"テキ", kun:"", s:14, ew:"適切", er:"てきせつ", p:"n"},
+    {k:"編", on:"ヘン", kun:"あ(む)", s:15, ew:"編集", er:"へんしゅう", p:"n"},
+    {k:"救", on:"キュウ", kun:"すく(う)", s:11, ew:"救い", er:"すくい", p:"n"},
+    {k:"粉", on:"フン", kun:"こな", s:10, ew:"花粉", er:"かふん", p:"n"},
+    {k:"脈", on:"ミャク", kun:"", s:10, ew:"動脈", er:"どうみゃく", p:"n"},
+    {k:"似", on:"ネ", kun:"に(る)", s:7, ew:"似顔", er:"にがお", p:"n"},
+    {k:"均", on:"キン", kun:"ひと", s:7, ew:"平均", er:"へいきん", p:"n"},
+    {k:"墓", on:"ボ", kun:"はか", s:13, ew:"墓", er:"はか", p:"n"},
+    {k:"序", on:"ジョ", kun:"つい(で)", s:7, ew:"順序", er:"じゅんじょ", p:"n"},
+    {k:"志", on:"シ", kun:"こころざし", s:7, ew:"意志", er:"いし", p:"n"},
+    {k:"採", on:"サイ", kun:"と(る)", s:11, ew:"採用", er:"さいよう", p:"n"},
+    {k:"桜", on:"オウ", kun:"さくら", s:10, ew:"桜花", er:"おうか", p:"n"},
+    {k:"永", on:"エイ", kun:"", s:5, ew:"永遠", er:"えいえん", p:"n"},
+    {k:"液", on:"エキ", kun:"", s:11, ew:"血液", er:"けつえき", p:"n"},
+    {k:"眼", on:"ガン", kun:"め", s:11, ew:"眼鏡", er:"めがね", p:"n"},
+    {k:"祖", on:"ソ", kun:"", s:9, ew:"祖父", er:"そふ", p:"n"},
+    {k:"績", on:"セキ", kun:"", s:17, ew:"功績", er:"こうせき", p:"n"},
+    {k:"興", on:"キョウ", kun:"", s:16, ew:"興味", er:"きょうみ", p:"n"},
+    {k:"衛", on:"エイ", kun:"", s:16, ew:"衛星", er:"えいせい", p:"n"},
+    {k:"複", on:"フク", kun:"", s:14, ew:"複雑", er:"ふくざつ", p:"n"},
+    {k:"雑", on:"ザツ", kun:"", s:14, ew:"雑音", er:"ざつおん", p:"n"},
+    {k:"賛", on:"サン", kun:"", s:15, ew:"賛成", er:"さんせい", p:"n"},
+    {k:"酸", on:"サン", kun:"す(い)", s:14, ew:"酸素", er:"さんそ", p:"n"},
+    {k:"飼", on:"シ", kun:"か(う)", s:13, ew:"飼育", er:"しいく", p:"n"},
+    {k:"損", on:"ソン", kun:"そこ(なう)", s:13, ew:"損害", er:"そんがい", p:"n"},
+    {k:"枝", on:"シ", kun:"えだ", s:8, ew:"枝", er:"えだ", p:"n"},
+    {k:"測", on:"ソク", kun:"はか(る)", s:12, ew:"予測", er:"よそく", p:"n"},
+    {k:"破", on:"ハ", kun:"やぶ(る)", s:10, ew:"破産", er:"はさん", p:"n"},
+    {k:"舎", on:"シャ", kun:"", s:8, ew:"田舎", er:"いなか", p:"n"},
+    {k:"講", on:"コウ", kun:"", s:17, ew:"講義", er:"こうぎ", p:"n"},
+    {k:"銅", on:"ドウ", kun:"あかがね", s:14, ew:"青銅", er:"せいどう", p:"n"},
+    {k:"旧", on:"キュウ", kun:"", s:5, ew:"復旧", er:"ふっきゅう", p:"n"},
+    {k:"貿", on:"ボウ", kun:"", s:12, ew:"貿易", er:"ぼうえき", p:"n"},
+    {k:"刊", on:"カン", kun:"", s:5, ew:"月刊", er:"げっかん", p:"n"},
+    {k:"鉱", on:"コウ", kun:"あらがね", s:13, ew:"鉱山", er:"こうざん", p:"n"},
+    {k:"綿", on:"メン", kun:"わた", s:14, ew:"綿", er:"わた", p:"n"},
+    {k:"耕", on:"コウ", kun:"たがや(す)", s:10, ew:"耕す", er:"たがやす", p:"v"},
   ],
   6: [
-    {k:"泉", on:"セン", kun:"いずみ", s:9},
-    {k:"亡", on:"ボウ", kun:"な(い)", s:3},
-    {k:"映", on:"エイ", kun:"うつ(る)", s:9},
-    {k:"疑", on:"ギ", kun:"うたが(う)", s:14},
-    {k:"私", on:"シ", kun:"わたし", s:7},
-    {k:"骨", on:"コツ", kun:"ほね", s:10},
-    {k:"晩", on:"バン", kun:"", s:12},
-    {k:"危", on:"キ", kun:"あぶ(ない)", s:6},
-    {k:"存", on:"ソン", kun:"", s:6},
-    {k:"専", on:"セン", kun:"もっぱ(ら)", s:9},
-    {k:"干", on:"カン", kun:"ほ(す)", s:3},
-    {k:"署", on:"ショ", kun:"", s:13},
-    {k:"警", on:"ケイ", kun:"", s:19},
-    {k:"座", on:"ザ", kun:"すわ(る)", s:10},
-    {k:"忘", on:"ボウ", kun:"わす(れる)", s:7},
-    {k:"洗", on:"セン", kun:"あら(う)", s:9},
-    {k:"胸", on:"キョウ", kun:"むね", s:10},
-    {k:"脳", on:"ノウ", kun:"", s:11},
-    {k:"枚", on:"マイ", kun:"", s:8},
-    {k:"若", on:"ジャク", kun:"わか(い)", s:8},
-    {k:"詞", on:"シ", kun:"", s:12},
-    {k:"舌", on:"ゼツ", kun:"した", s:6},
-    {k:"冊", on:"サツ", kun:"", s:5},
-    {k:"宇", on:"ウ", kun:"", s:6},
-    {k:"宙", on:"チュウ", kun:"", s:8},
-    {k:"乱", on:"ラン", kun:"みだ(れる)", s:7},
-    {k:"善", on:"ゼン", kun:"", s:12},
-    {k:"困", on:"コン", kun:"こま(る)", s:7},
-    {k:"難", on:"ナン", kun:"むずか(しい)", s:18},
-    {k:"穴", on:"ケツ", kun:"あな", s:5},
-    {k:"論", on:"ロン", kun:"", s:15},
-    {k:"敵", on:"テキ", kun:"かな(う)", s:15},
-    {k:"済", on:"サイ", kun:"す(む)", s:11},
-    {k:"権", on:"ケン", kun:"", s:15},
-    {k:"派", on:"ハ", kun:"", s:9},
-    {k:"批", on:"ヒ", kun:"", s:7},
-    {k:"認", on:"ニン", kun:"みと(める)", s:14},
-    {k:"誕", on:"タン", kun:"", s:15},
-    {k:"策", on:"サク", kun:"", s:12},
-    {k:"値", on:"チ", kun:"ね", s:10},
-    {k:"吸", on:"キュウ", kun:"す(う)", s:6},
-    {k:"域", on:"イキ", kun:"", s:11},
-    {k:"姿", on:"シ", kun:"すがた", s:9},
-    {k:"収", on:"シュウ", kun:"おさ(める)", s:4},
-    {k:"革", on:"カク", kun:"かわ", s:9},
-    {k:"割", on:"カツ", kun:"わり", s:12},
-    {k:"裁", on:"サイ", kun:"さば(く)", s:12},
-    {k:"律", on:"リツ", kun:"", s:9},
-    {k:"看", on:"カン", kun:"", s:9},
-    {k:"優", on:"ユウ", kun:"やさ(しい)", s:17},
-    {k:"宅", on:"タク", kun:"", s:6},
-    {k:"乳", on:"ニュウ", kun:"ちち", s:8},
-    {k:"呼", on:"コ", kun:"よ(ぶ)", s:8},
-    {k:"俳", on:"ハイ", kun:"", s:10},
-    {k:"担", on:"タン", kun:"にな(う)", s:8},
-    {k:"届", on:"カイ", kun:"とど(ける)", s:8},
-    {k:"層", on:"ソウ", kun:"", s:14},
-    {k:"庁", on:"チョウ", kun:"", s:5},
-    {k:"視", on:"シ", kun:"", s:11},
-    {k:"供", on:"キョウ", kun:"とも", s:8},
-    {k:"展", on:"テン", kun:"のぶ", s:10},
-    {k:"株", on:"シュ", kun:"かぶ", s:10},
-    {k:"補", on:"ホ", kun:"おぎな(う)", s:12},
-    {k:"模", on:"モ", kun:"", s:14},
-    {k:"巻", on:"カン", kun:"ま(く)", s:9},
-    {k:"創", on:"ソウ", kun:"", s:12},
-    {k:"障", on:"ショウ", kun:"さわ(る)", s:14},
-    {k:"従", on:"ジュウ", kun:"したが(う)", s:10},
-    {k:"我", on:"ガ", kun:"われ", s:7},
-    {k:"激", on:"ゲキ", kun:"はげ(しい)", s:16},
-    {k:"討", on:"トウ", kun:"", s:10},
-    {k:"郵", on:"ユウ", kun:"", s:11},
-    {k:"針", on:"シン", kun:"はり", s:10},
-    {k:"段", on:"ダン", kun:"", s:9},
-    {k:"胃", on:"イ", kun:"", s:9},
-    {k:"腹", on:"フク", kun:"はら", s:13},
-    {k:"痛", on:"ツウ", kun:"いた(い)", s:12},
-    {k:"退", on:"タイ", kun:"しりぞ(く)", s:9},
-    {k:"就", on:"シュウ", kun:"つ(く)", s:12},
-    {k:"訪", on:"ホウ", kun:"たず(ねる)", s:11},
-    {k:"幼", on:"ヨウ", kun:"おさな(い)", s:5},
-    {k:"処", on:"ショ", kun:"ところ", s:5},
-    {k:"券", on:"ケン", kun:"", s:8},
-    {k:"並", on:"ヘイ", kun:"なら(べる)", s:8},
-    {k:"憲", on:"ケン", kun:"", s:16},
-    {k:"衆", on:"シュウ", kun:"", s:12},
-    {k:"閣", on:"カク", kun:"", s:14},
-    {k:"宗", on:"シュウ", kun:"", s:8},
-    {k:"系", on:"ケイ", kun:"", s:7},
-    {k:"預", on:"ヨ", kun:"あず(ける)", s:13},
-    {k:"延", on:"エン", kun:"のば", s:8},
-    {k:"翌", on:"ヨク", kun:"", s:11},
-    {k:"覧", on:"ラン", kun:"", s:17},
-    {k:"背", on:"ハイ", kun:"せ", s:9},
-    {k:"除", on:"ジョ", kun:"のぞ(く)", s:10},
-    {k:"棒", on:"ボウ", kun:"", s:12},
-    {k:"探", on:"タン", kun:"さが(す)", s:11},
-    {k:"恩", on:"オン", kun:"", s:10},
-    {k:"銭", on:"セン", kun:"ぜに", s:14},
-    {k:"傷", on:"ショウ", kun:"きず", s:13},
-    {k:"党", on:"トウ", kun:"", s:10},
-    {k:"卵", on:"ラン", kun:"たまご", s:7},
-    {k:"厳", on:"ゲン", kun:"きび(しい)", s:17},
-    {k:"捨", on:"シャ", kun:"す(てる)", s:11},
-    {k:"密", on:"ミツ", kun:"ひそ(か)", s:11},
-    {k:"欲", on:"ヨク", kun:"ほ(しい)", s:11},
-    {k:"暖", on:"ダン", kun:"あたた(か)", s:13},
-    {k:"机", on:"キ", kun:"つくえ", s:6},
-    {k:"秘", on:"ヒ", kun:"ひ(める)", s:10},
-    {k:"訳", on:"ヤク", kun:"わけ", s:11},
-    {k:"染", on:"セン", kun:"しみ", s:9},
-    {k:"簡", on:"カン", kun:"", s:18},
-    {k:"閉", on:"ヘイ", kun:"し(める)", s:11},
-    {k:"誌", on:"シ", kun:"", s:14},
-    {k:"窓", on:"ソウ", kun:"まど", s:11},
-    {k:"否", on:"ヒ", kun:"いな", s:7},
-    {k:"筋", on:"キン", kun:"すじ", s:12},
-    {k:"垂", on:"スイ", kun:"た(れる)", s:8},
-    {k:"宝", on:"ホウ", kun:"たから", s:8},
-    {k:"宣", on:"セン", kun:"のたま(う)", s:9},
-    {k:"尊", on:"ソン", kun:"とうと(い)", s:12},
-    {k:"忠", on:"チュウ", kun:"", s:8},
-    {k:"拡", on:"カク", kun:"ひろ(がる)", s:8},
-    {k:"操", on:"ソウ", kun:"あやつ(る)", s:16},
-    {k:"敬", on:"ケイ", kun:"うやま(う)", s:12},
-    {k:"暮", on:"ボ", kun:"く(れる)", s:14},
-    {k:"灰", on:"カイ", kun:"はい", s:6},
-    {k:"熟", on:"ジュク", kun:"う(れる)", s:15},
-    {k:"異", on:"イ", kun:"こと", s:11},
-    {k:"皇", on:"コウ", kun:"", s:9},
-    {k:"盛", on:"セイ", kun:"も(る)", s:11},
-    {k:"砂", on:"サ", kun:"すな", s:9},
-    {k:"糖", on:"トウ", kun:"", s:16},
-    {k:"納", on:"ノウ", kun:"おさ(める)", s:10},
+    {k:"泉", on:"セン", kun:"いずみ", s:9, ew:"泉", er:"いずみ", p:"n"},
+    {k:"亡", on:"ボウ", kun:"な(い)", s:3, ew:"死亡", er:"しぼう", p:"n"},
+    {k:"映", on:"エイ", kun:"うつ(る)", s:9, ew:"映画", er:"えいが", p:"n"},
+    {k:"疑", on:"ギ", kun:"うたが(う)", s:14, ew:"疑い", er:"うたがい", p:"n"},
+    {k:"私", on:"シ", kun:"わたし", s:7, ew:"私", er:"わたし", p:"n"},
+    {k:"骨", on:"コツ", kun:"ほね", s:10, ew:"骨", er:"ほね", p:"n"},
+    {k:"晩", on:"バン", kun:"", s:12, ew:"今晩", er:"こんばん", p:"n"},
+    {k:"危", on:"キ", kun:"あぶ(ない)", s:6, ew:"危険", er:"きけん", p:"n"},
+    {k:"存", on:"ソン", kun:"", s:6, ew:"生存", er:"せいぞん", p:"n"},
+    {k:"専", on:"セン", kun:"もっぱ(ら)", s:9, ew:"専門", er:"せんもん", p:"n"},
+    {k:"干", on:"カン", kun:"ほ(す)", s:3, ew:"干る", er:"ひる", p:"v"},
+    {k:"署", on:"ショ", kun:"", s:13, ew:"署名", er:"しょめい", p:"n"},
+    {k:"警", on:"ケイ", kun:"", s:19, ew:"警部", er:"けいぶ", p:"n"},
+    {k:"座", on:"ザ", kun:"すわ(る)", s:10, ew:"口座", er:"こうざ", p:"n"},
+    {k:"忘", on:"ボウ", kun:"わす(れる)", s:7, ew:"忘れる", er:"わすれる", p:"v"},
+    {k:"洗", on:"セン", kun:"あら(う)", s:9, ew:"洗う", er:"あらう", p:"v"},
+    {k:"胸", on:"キョウ", kun:"むね", s:10, ew:"胸", er:"むね", p:"n"},
+    {k:"脳", on:"ノウ", kun:"", s:11, ew:"頭脳", er:"ずのう", p:"n"},
+    {k:"枚", on:"マイ", kun:"", s:8, ew:"一枚", er:"いちまい", p:"n"},
+    {k:"若", on:"ジャク", kun:"わか(い)", s:8, ew:"若者", er:"わかもの", p:"n"},
+    {k:"詞", on:"シ", kun:"", s:12, ew:"名詞", er:"めいし", p:"n"},
+    {k:"舌", on:"ゼツ", kun:"した", s:6, ew:"舌打ち", er:"したうち", p:"n"},
+    {k:"冊", on:"サツ", kun:"", s:5, ew:"冊子", er:"さっし", p:"n"},
+    {k:"宇", on:"ウ", kun:"", s:6, ew:"宇宙", er:"うちゅう", p:"n"},
+    {k:"宙", on:"チュウ", kun:"", s:8, ew:"宇宙", er:"うちゅう", p:"n"},
+    {k:"乱", on:"ラン", kun:"みだ(れる)", s:7, ew:"混乱", er:"こんらん", p:"n"},
+    {k:"善", on:"ゼン", kun:"", s:12, ew:"最善", er:"さいぜん", p:"n"},
+    {k:"困", on:"コン", kun:"こま(る)", s:7, ew:"困難", er:"こんなん", p:"n"},
+    {k:"難", on:"ナン", kun:"むずか(しい)", s:18, ew:"非難", er:"ひなん", p:"n"},
+    {k:"穴", on:"ケツ", kun:"あな", s:5, ew:"穴", er:"あな", p:"n"},
+    {k:"論", on:"ロン", kun:"", s:15, ew:"理論", er:"りろん", p:"n"},
+    {k:"敵", on:"テキ", kun:"かな(う)", s:15, ew:"敵対", er:"てきたい", p:"n"},
+    {k:"済", on:"サイ", kun:"す(む)", s:11, ew:"返済", er:"へんさい", p:"n"},
+    {k:"権", on:"ケン", kun:"", s:15, ew:"権力", er:"けんりょく", p:"n"},
+    {k:"派", on:"ハ", kun:"", s:9, ew:"派手", er:"はで", p:"n"},
+    {k:"批", on:"ヒ", kun:"", s:7, ew:"批判", er:"ひはん", p:"n"},
+    {k:"認", on:"ニン", kun:"みと(める)", s:14, ew:"認め", er:"みとめ", p:"n"},
+    {k:"誕", on:"タン", kun:"", s:15, ew:"誕生", er:"たんじょう", p:"n"},
+    {k:"策", on:"サク", kun:"", s:12, ew:"対策", er:"たいさく", p:"n"},
+    {k:"値", on:"チ", kun:"ね", s:10, ew:"価値", er:"かち", p:"n"},
+    {k:"吸", on:"キュウ", kun:"す(う)", s:6, ew:"呼吸", er:"こきゅう", p:"n"},
+    {k:"域", on:"イキ", kun:"", s:11, ew:"地域", er:"ちいき", p:"n"},
+    {k:"姿", on:"シ", kun:"すがた", s:9, ew:"姿", er:"すがた", p:"n"},
+    {k:"収", on:"シュウ", kun:"おさ(める)", s:4, ew:"回収", er:"かいしゅう", p:"n"},
+    {k:"革", on:"カク", kun:"かわ", s:9, ew:"革命", er:"かくめい", p:"n"},
+    {k:"割", on:"カツ", kun:"わり", s:12, ew:"役割", er:"やくわり", p:"n"},
+    {k:"裁", on:"サイ", kun:"さば(く)", s:12, ew:"裁判", er:"さいばん", p:"n"},
+    {k:"律", on:"リツ", kun:"", s:9, ew:"法律", er:"ほうりつ", p:"n"},
+    {k:"看", on:"カン", kun:"", s:9, ew:"看護", er:"かんご", p:"n"},
+    {k:"優", on:"ユウ", kun:"やさ(しい)", s:17, ew:"優先", er:"ゆうせん", p:"n"},
+    {k:"宅", on:"タク", kun:"", s:6, ew:"自宅", er:"じたく", p:"n"},
+    {k:"乳", on:"ニュウ", kun:"ちち", s:8, ew:"乳首", er:"ちくび", p:"n"},
+    {k:"呼", on:"コ", kun:"よ(ぶ)", s:8, ew:"呼吸", er:"こきゅう", p:"n"},
+    {k:"俳", on:"ハイ", kun:"", s:10, ew:"俳優", er:"はいゆう", p:"n"},
+    {k:"担", on:"タン", kun:"にな(う)", s:8, ew:"担当", er:"たんとう", p:"n"},
+    {k:"届", on:"カイ", kun:"とど(ける)", s:8, ew:"届", er:"とどけ", p:"n"},
+    {k:"層", on:"ソウ", kun:"", s:14, ew:"一層", er:"いっそう", p:"n"},
+    {k:"庁", on:"チョウ", kun:"", s:5, ew:"官庁", er:"かんちょう", p:"n"},
+    {k:"視", on:"シ", kun:"", s:11, ew:"無視", er:"むし", p:"n"},
+    {k:"供", on:"キョウ", kun:"とも", s:8, ew:"子供", er:"こども", p:"n"},
+    {k:"展", on:"テン", kun:"のぶ", s:10, ew:"進展", er:"しんてん", p:"n"},
+    {k:"株", on:"シュ", kun:"かぶ", s:10, ew:"株式", er:"かぶしき", p:"n"},
+    {k:"補", on:"ホ", kun:"おぎな(う)", s:12, ew:"候補", er:"こうほ", p:"n"},
+    {k:"模", on:"モ", kun:"", s:14, ew:"規模", er:"きぼ", p:"n"},
+    {k:"巻", on:"カン", kun:"ま(く)", s:9, ew:"巻", er:"まき", p:"n"},
+    {k:"創", on:"ソウ", kun:"", s:12, ew:"創造", er:"そうぞう", p:"n"},
+    {k:"障", on:"ショウ", kun:"さわ(る)", s:14, ew:"障害", er:"しょうがい", p:"n"},
+    {k:"従", on:"ジュウ", kun:"したが(う)", s:10, ew:"服従", er:"ふくじゅう", p:"n"},
+    {k:"我", on:"ガ", kun:"われ", s:7, ew:"我", er:"われ", p:"n"},
+    {k:"激", on:"ゲキ", kun:"はげ(しい)", s:16, ew:"感激", er:"かんげき", p:"n"},
+    {k:"討", on:"トウ", kun:"", s:10, ew:"検討", er:"けんとう", p:"n"},
+    {k:"郵", on:"ユウ", kun:"", s:11, ew:"郵便", er:"ゆうびん", p:"n"},
+    {k:"針", on:"シン", kun:"はり", s:10, ew:"針金", er:"はりがね", p:"n"},
+    {k:"段", on:"ダン", kun:"", s:9, ew:"手段", er:"しゅだん", p:"n"},
+    {k:"胃", on:"イ", kun:"", s:9, ew:"胃腸", er:"いちょう", p:"n"},
+    {k:"腹", on:"フク", kun:"はら", s:13, ew:"お腹", er:"おなか", p:"n"},
+    {k:"痛", on:"ツウ", kun:"いた(い)", s:12, ew:"苦痛", er:"くつう", p:"n"},
+    {k:"退", on:"タイ", kun:"しりぞ(く)", s:9, ew:"退学", er:"たいがく", p:"n"},
+    {k:"就", on:"シュウ", kun:"つ(く)", s:12, ew:"就く", er:"つく", p:"v"},
+    {k:"訪", on:"ホウ", kun:"たず(ねる)", s:11, ew:"訪問", er:"ほうもん", p:"n"},
+    {k:"幼", on:"ヨウ", kun:"おさな(い)", s:5, ew:"幼い", er:"おさない", p:"a"},
+    {k:"処", on:"ショ", kun:"ところ", s:5, ew:"何処", er:"どこ", p:"n"},
+    {k:"券", on:"ケン", kun:"", s:8, ew:"証券", er:"しょうけん", p:"n"},
+    {k:"並", on:"ヘイ", kun:"なら(べる)", s:8, ew:"並ぶ", er:"ならぶ", p:"v"},
+    {k:"憲", on:"ケン", kun:"", s:16, ew:"憲法", er:"けんぽう", p:"n"},
+    {k:"衆", on:"シュウ", kun:"", s:12, ew:"大衆", er:"たいしゅう", p:"n"},
+    {k:"閣", on:"カク", kun:"", s:14, ew:"閣下", er:"かっか", p:"n"},
+    {k:"宗", on:"シュウ", kun:"", s:8, ew:"改宗", er:"かいしゅう", p:"n"},
+    {k:"系", on:"ケイ", kun:"", s:7, ew:"家系", er:"かけい", p:"n"},
+    {k:"預", on:"ヨ", kun:"あず(ける)", s:13, ew:"預かり", er:"あずかり", p:"n"},
+    {k:"延", on:"エン", kun:"のば", s:8, ew:"延長", er:"えんちょう", p:"n"},
+    {k:"翌", on:"ヨク", kun:"", s:11, ew:"翌日", er:"よくじつ", p:"n"},
+    {k:"覧", on:"ラン", kun:"", s:17, ew:"ご覧", er:"ごらん", p:"n"},
+    {k:"背", on:"ハイ", kun:"せ", s:9, ew:"背中", er:"せなか", p:"n"},
+    {k:"除", on:"ジョ", kun:"のぞ(く)", s:10, ew:"解除", er:"かいじょ", p:"n"},
+    {k:"棒", on:"ボウ", kun:"", s:12, ew:"相棒", er:"あいぼう", p:"n"},
+    {k:"探", on:"タン", kun:"さが(す)", s:11, ew:"探知", er:"たんち", p:"n"},
+    {k:"恩", on:"オン", kun:"", s:10, ew:"恩人", er:"おんじん", p:"n"},
+    {k:"銭", on:"セン", kun:"ぜに", s:14, ew:"小銭", er:"こぜに", p:"n"},
+    {k:"傷", on:"ショウ", kun:"きず", s:13, ew:"傷", er:"きず", p:"n"},
+    {k:"党", on:"トウ", kun:"", s:10, ew:"党員", er:"とういん", p:"n"},
+    {k:"卵", on:"ラン", kun:"たまご", s:7, ew:"卵", er:"たまご", p:"n"},
+    {k:"厳", on:"ゲン", kun:"きび(しい)", s:17, ew:"厳しい", er:"きびしい", p:"a"},
+    {k:"捨", on:"シャ", kun:"す(てる)", s:11, ew:"捨てる", er:"すてる", p:"v"},
+    {k:"密", on:"ミツ", kun:"ひそ(か)", s:11, ew:"秘密", er:"ひみつ", p:"n"},
+    {k:"欲", on:"ヨク", kun:"ほ(しい)", s:11, ew:"食欲", er:"しょくよく", p:"n"},
+    {k:"暖", on:"ダン", kun:"あたた(か)", s:13, ew:"暖かい", er:"あたたかい", p:"a"},
+    {k:"机", on:"キ", kun:"つくえ", s:6, ew:"机", er:"つくえ", p:"n"},
+    {k:"秘", on:"ヒ", kun:"ひ(める)", s:10, ew:"秘密", er:"ひみつ", p:"n"},
+    {k:"訳", on:"ヤク", kun:"わけ", s:11, ew:"訳", er:"わけ", p:"n"},
+    {k:"染", on:"セン", kun:"しみ", s:9, ew:"感染", er:"かんせん", p:"n"},
+    {k:"簡", on:"カン", kun:"", s:18, ew:"簡単", er:"かんたん", p:"n"},
+    {k:"閉", on:"ヘイ", kun:"し(める)", s:11, ew:"閉店", er:"へいてん", p:"n"},
+    {k:"誌", on:"シ", kun:"", s:14, ew:"日誌", er:"にっし", p:"n"},
+    {k:"窓", on:"ソウ", kun:"まど", s:11, ew:"窓", er:"まど", p:"n"},
+    {k:"否", on:"ヒ", kun:"いな", s:7, ew:"否定", er:"ひてい", p:"n"},
+    {k:"筋", on:"キン", kun:"すじ", s:12, ew:"筋肉", er:"きんにく", p:"n"},
+    {k:"垂", on:"スイ", kun:"た(れる)", s:8, ew:"垂直", er:"すいちょく", p:"n"},
+    {k:"宝", on:"ホウ", kun:"たから", s:8, ew:"宝石", er:"ほうせき", p:"n"},
+    {k:"宣", on:"セン", kun:"のたま(う)", s:9, ew:"宣言", er:"せんげん", p:"n"},
+    {k:"尊", on:"ソン", kun:"とうと(い)", s:12, ew:"尊敬", er:"そんけい", p:"n"},
+    {k:"忠", on:"チュウ", kun:"", s:8, ew:"忠告", er:"ちゅうこく", p:"n"},
+    {k:"拡", on:"カク", kun:"ひろ(がる)", s:8, ew:"拡大", er:"かくだい", p:"n"},
+    {k:"操", on:"ソウ", kun:"あやつ(る)", s:16, ew:"操作", er:"そうさ", p:"n"},
+    {k:"敬", on:"ケイ", kun:"うやま(う)", s:12, ew:"敬意", er:"けいい", p:"n"},
+    {k:"暮", on:"ボ", kun:"く(れる)", s:14, ew:"暮らし", er:"くらし", p:"n"},
+    {k:"灰", on:"カイ", kun:"はい", s:6, ew:"灰色", er:"はいいろ", p:"n"},
+    {k:"熟", on:"ジュク", kun:"う(れる)", s:15, ew:"未熟", er:"みじゅく", p:"n"},
+    {k:"異", on:"イ", kun:"こと", s:11, ew:"異常", er:"いじょう", p:"n"},
+    {k:"皇", on:"コウ", kun:"", s:9, ew:"天皇", er:"てんのう", p:"n"},
+    {k:"盛", on:"セイ", kun:"も(る)", s:11, ew:"盛大", er:"せいだい", p:"n"},
+    {k:"砂", on:"サ", kun:"すな", s:9, ew:"砂", er:"すな", p:"n"},
+    {k:"糖", on:"トウ", kun:"", s:16, ew:"血糖", er:"けっとう", p:"n"},
+    {k:"納", on:"ノウ", kun:"おさ(める)", s:10, ew:"納得", er:"なっとく", p:"n"},
     {k:"肺", on:"ハイ", kun:"", s:9},
-    {k:"著", on:"チョ", kun:"いちじる(しい)", s:11},
-    {k:"蒸", on:"ジョウ", kun:"む(す)", s:13},
-    {k:"蔵", on:"ゾウ", kun:"くら", s:15},
-    {k:"装", on:"ソウ", kun:"よそお(う)", s:12},
-    {k:"裏", on:"リ", kun:"うら", s:13},
-    {k:"諸", on:"ショ", kun:"もろ", s:15},
-    {k:"賃", on:"チン", kun:"", s:13},
-    {k:"誤", on:"ゴ", kun:"あやま(る)", s:14},
-    {k:"臓", on:"ゾウ", kun:"", s:19},
-    {k:"貴", on:"キ", kun:"とうと(い)", s:12},
-    {k:"降", on:"コウ", kun:"お(りる)", s:10},
-    {k:"縮", on:"シュク", kun:"ちぢ(む)", s:17},
-    {k:"純", on:"ジュン", kun:"", s:10},
-    {k:"縦", on:"ジュウ", kun:"たて", s:16},
-    {k:"聖", on:"セイ", kun:"", s:13},
-    {k:"磁", on:"ジ", kun:"", s:14},
-    {k:"紅", on:"コウ", kun:"べに", s:9},
-    {k:"射", on:"シャ", kun:"い(る)", s:10},
-    {k:"幕", on:"マク", kun:"とばり", s:13},
-    {k:"拝", on:"ハイ", kun:"おが(む)", s:8},
-    {k:"推", on:"スイ", kun:"お(す)", s:11},
-    {k:"揮", on:"キ", kun:"", s:12},
-    {k:"沿", on:"エン", kun:"そ(う)", s:8},
-    {k:"源", on:"ゲン", kun:"みなもと", s:13},
-    {k:"劇", on:"ゲキ", kun:"", s:15},
-    {k:"勤", on:"キン", kun:"つと(める)", s:12},
-    {k:"承", on:"ショウ", kun:"うけたまわ(る)", s:8},
-    {k:"刻", on:"コク", kun:"きざ(む)", s:8},
-    {k:"己", on:"コ", kun:"おのれ", s:3},
-    {k:"将", on:"ショウ", kun:"", s:10},
-    {k:"盟", on:"メイ", kun:"", s:13},
-    {k:"遺", on:"イ", kun:"のこ(す)", s:15},
-    {k:"臨", on:"リン", kun:"のぞ(む)", s:18},
-    {k:"奏", on:"ソウ", kun:"かな(でる)", s:9},
-    {k:"片", on:"ヘン", kun:"かた", s:4},
-    {k:"鋼", on:"コウ", kun:"はがね", s:16},
-    {k:"孝", on:"コウ", kun:"", s:7},
-    {k:"樹", on:"ジュ", kun:"き", s:16},
-    {k:"仁", on:"ジン", kun:"", s:4},
-    {k:"至", on:"シ", kun:"いた(る)", s:6},
-    {k:"誠", on:"セイ", kun:"まこと", s:13},
-    {k:"郷", on:"キョウ", kun:"", s:11},
-    {k:"朗", on:"ロウ", kun:"ほが(らか)", s:10},
-    {k:"潮", on:"チョウ", kun:"しお", s:15},
-    {k:"寸", on:"スン", kun:"", s:3},
-    {k:"俵", on:"ヒョウ", kun:"たわら", s:10},
-    {k:"尺", on:"シャク", kun:"", s:4},
-    {k:"班", on:"ハン", kun:"", s:10},
-    {k:"陛", on:"ヘイ", kun:"", s:10},
-    {k:"后", on:"コウ", kun:"きさき", s:6},
-    {k:"奮", on:"フン", kun:"ふる(う)", s:16},
-    {k:"頂", on:"チョウ", kun:"いただき", s:11},
-    {k:"穀", on:"コク", kun:"", s:14},
-    {k:"腸", on:"チョウ", kun:"はらわた", s:13},
-    {k:"絹", on:"ケン", kun:"きぬ", s:13},
-    {k:"蚕", on:"サン", kun:"", s:10},
+    {k:"著", on:"チョ", kun:"いちじる(しい)", s:11, ew:"著名", er:"ちょめい", p:"n"},
+    {k:"蒸", on:"ジョウ", kun:"む(す)", s:13, ew:"蒸気", er:"じょうき", p:"n"},
+    {k:"蔵", on:"ゾウ", kun:"くら", s:15, ew:"冷蔵", er:"れいぞう", p:"n"},
+    {k:"装", on:"ソウ", kun:"よそお(う)", s:12, ew:"装置", er:"そうち", p:"n"},
+    {k:"裏", on:"リ", kun:"うら", s:13, ew:"裏口", er:"うらぐち", p:"n"},
+    {k:"諸", on:"ショ", kun:"もろ", s:15, ew:"諸君", er:"しょくん", p:"n"},
+    {k:"賃", on:"チン", kun:"", s:13, ew:"家賃", er:"やちん", p:"n"},
+    {k:"誤", on:"ゴ", kun:"あやま(る)", s:14, ew:"誤解", er:"ごかい", p:"n"},
+    {k:"臓", on:"ゾウ", kun:"", s:19, ew:"心臓", er:"しんぞう", p:"n"},
+    {k:"貴", on:"キ", kun:"とうと(い)", s:12, ew:"貴方", er:"あなた", p:"n"},
+    {k:"降", on:"コウ", kun:"お(りる)", s:10, ew:"降下", er:"こうか", p:"n"},
+    {k:"縮", on:"シュク", kun:"ちぢ(む)", s:17, ew:"縮まる", er:"ちぢまる", p:"v"},
+    {k:"純", on:"ジュン", kun:"", s:10, ew:"単純", er:"たんじゅん", p:"n"},
+    {k:"縦", on:"ジュウ", kun:"たて", s:16, ew:"操縦", er:"そうじゅう", p:"n"},
+    {k:"聖", on:"セイ", kun:"", s:13, ew:"聖人", er:"せいじん", p:"n"},
+    {k:"磁", on:"ジ", kun:"", s:14, ew:"磁気", er:"じき", p:"n"},
+    {k:"紅", on:"コウ", kun:"べに", s:9, ew:"紅茶", er:"こうちゃ", p:"n"},
+    {k:"射", on:"シャ", kun:"い(る)", s:10, ew:"注射", er:"ちゅうしゃ", p:"n"},
+    {k:"幕", on:"マク", kun:"とばり", s:13, ew:"字幕", er:"じまく", p:"n"},
+    {k:"拝", on:"ハイ", kun:"おが(む)", s:8, ew:"拝見", er:"はいけん", p:"n"},
+    {k:"推", on:"スイ", kun:"お(す)", s:11, ew:"推測", er:"すいそく", p:"n"},
+    {k:"揮", on:"キ", kun:"", s:12, ew:"指揮", er:"しき", p:"n"},
+    {k:"沿", on:"エン", kun:"そ(う)", s:8, ew:"沿岸", er:"えんがん", p:"n"},
+    {k:"源", on:"ゲン", kun:"みなもと", s:13, ew:"電源", er:"でんげん", p:"n"},
+    {k:"劇", on:"ゲキ", kun:"", s:15, ew:"悲劇", er:"ひげき", p:"n"},
+    {k:"勤", on:"キン", kun:"つと(める)", s:12, ew:"出勤", er:"しゅっきん", p:"n"},
+    {k:"承", on:"ショウ", kun:"うけたまわ(る)", s:8, ew:"承知", er:"しょうち", p:"n"},
+    {k:"刻", on:"コク", kun:"きざ(む)", s:8, ew:"深刻", er:"しんこく", p:"n"},
+    {k:"己", on:"コ", kun:"おのれ", s:3, ew:"自己", er:"じこ", p:"n"},
+    {k:"将", on:"ショウ", kun:"", s:10, ew:"将来", er:"しょうらい", p:"n"},
+    {k:"盟", on:"メイ", kun:"", s:13, ew:"同盟", er:"どうめい", p:"n"},
+    {k:"遺", on:"イ", kun:"のこ(す)", s:15, ew:"遺体", er:"いたい", p:"n"},
+    {k:"臨", on:"リン", kun:"のぞ(む)", s:18, ew:"臨時", er:"りんじ", p:"n"},
+    {k:"奏", on:"ソウ", kun:"かな(でる)", s:9, ew:"演奏", er:"えんそう", p:"n"},
+    {k:"片", on:"ヘン", kun:"かた", s:4, ew:"片方", er:"かたほう", p:"n"},
+    {k:"鋼", on:"コウ", kun:"はがね", s:16, ew:"鋼", er:"はがね", p:"n"},
+    {k:"孝", on:"コウ", kun:"", s:7, ew:"孝行", er:"こうこう", p:"n"},
+    {k:"樹", on:"ジュ", kun:"き", s:16, ew:"樹皮", er:"じゅひ", p:"n"},
+    {k:"仁", on:"ジン", kun:"", s:4, ew:"仁王", er:"におう", p:"n"},
+    {k:"至", on:"シ", kun:"いた(る)", s:6, ew:"至る", er:"いたる", p:"v"},
+    {k:"誠", on:"セイ", kun:"まこと", s:13, ew:"誠実", er:"せいじつ", p:"n"},
+    {k:"郷", on:"キョウ", kun:"", s:11, ew:"故郷", er:"ふるさと", p:"n"},
+    {k:"朗", on:"ロウ", kun:"ほが(らか)", s:10, ew:"朗読", er:"ろうどく", p:"n"},
+    {k:"潮", on:"チョウ", kun:"しお", s:15, ew:"潮時", er:"しおどき", p:"n"},
+    {k:"寸", on:"スン", kun:"", s:3, ew:"寸前", er:"すんぜん", p:"n"},
+    {k:"俵", on:"ヒョウ", kun:"たわら", s:10, ew:"土俵", er:"どひょう", p:"n"},
+    {k:"尺", on:"シャク", kun:"", s:4, ew:"尺", er:"しゃく", p:"n"},
+    {k:"班", on:"ハン", kun:"", s:10, ew:"班長", er:"はんちょう", p:"n"},
+    {k:"陛", on:"ヘイ", kun:"", s:10, ew:"陛下", er:"へいか", p:"n"},
+    {k:"后", on:"コウ", kun:"きさき", s:6, ew:"皇后", er:"こうごう", p:"n"},
+    {k:"奮", on:"フン", kun:"ふる(う)", s:16, ew:"興奮", er:"こうふん", p:"n"},
+    {k:"頂", on:"チョウ", kun:"いただき", s:11, ew:"頂", er:"いただき", p:"n"},
+    {k:"穀", on:"コク", kun:"", s:14, ew:"穀物", er:"こくもつ", p:"n"},
+    {k:"腸", on:"チョウ", kun:"はらわた", s:13, ew:"大腸", er:"だいちょう", p:"n"},
+    {k:"絹", on:"ケン", kun:"きぬ", s:13, ew:"絹", er:"きぬ", p:"n"},
+    {k:"蚕", on:"サン", kun:"", s:10, ew:"蚕糸", er:"さんし", p:"n"},
   ],
 };
 
-/* =========================================================
-   モンスター（atk=プレイヤーへの攻撃力 / chance=反撃確率）
-   ========================================================= */
 const MONSTERS = [
   { name:"スライム", sprite:"🟢", hp:5,  atk:1, chance:.12, atkIcon:"💧" },
   { name:"コウモリ", sprite:"🦇", hp:7,  atk:1, chance:.30, atkIcon:"🌀" },
@@ -1379,9 +1427,6 @@ const MONSTERS = [
   { name:"まおう",   sprite:"😈", hp:24, atk:4, chance:.40, atkIcon:"🟪" },
 ];
 
-/* =========================================================
-   アバター（自作SVGキャラ＋レアリティ）
-   ========================================================= */
 const AVATARS = [
   { id:"hero",   name:"ヒーロー",         cost:0,    atk:0, hp:0, rar:"common", c1:"#5b8cff", c2:"#9db8ff", accent:"#ffcf5a", acc:"tuft",    desc:"きほんのすがた" },
   { id:"cat",    name:"ねこせんし",       cost:100,  atk:0, hp:2, rar:"common", c1:"#ffb24d", c2:"#ffd28a", accent:"#ff9a3c", acc:"catEars", desc:"さいだいHP+2" },
@@ -1400,7 +1445,6 @@ const AVATARS = [
 const RAR_STARS = { common:"★", rare:"★★", epic:"★★★", legend:"★★★★" };
 const RAR_LABEL = { common:"ノーマル", rare:"レア", epic:"エピック", legend:"レジェンド" };
 
-/* ---- アバターSVG生成 ---- */
 const ACC_BACK = {
   fairy:a=>`<ellipse cx="28" cy="56" rx="14" ry="20" fill="${a.c2}" opacity=".6" transform="rotate(-22 28 56)"/><ellipse cx="72" cy="56" rx="14" ry="20" fill="${a.c2}" opacity=".6" transform="rotate(22 72 56)"/>`,
 };
@@ -1432,14 +1476,8 @@ function avatarSVG(id, size){
   const smile=`<path d="M44 69 Q50 74 56 69" stroke="#23304d" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
   return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">${back}${body}${eyes}${cheeks}${smile}${top}</svg>`;
 }
-function medallionHTML(id, cls){
-  const a = AVATARS.find(x=>x.id===id) || AVATARS[0];
-  return `<span class="medallion ${cls||""} rar-${a.rar}">${avatarSVG(id,52)}</span>`;
-}
+function medallionHTML(id, cls){ const a=AVATARS.find(x=>x.id===id)||AVATARS[0]; return `<span class="medallion ${cls||""} rar-${a.rar}">${avatarSVG(id,52)}</span>`; }
 
-/* =========================================================
-   わざ / アイテム
-   ========================================================= */
 const SKILLS = [
   { id:"punch",   name:"なぐる",           icon:"👊", cost:0,    power:2,  anim:"throw",  proj:"💢", burst:"💥", color:"#ffd27a" },
   { id:"fire",    name:"ファイアボール",   icon:"🔥", cost:180,  power:3,  anim:"throw",  proj:"🔥", burst:"💥", color:"#ff7a3c" },
@@ -1457,16 +1495,13 @@ const SHOP_ITEMS = [
   { id:"charge", name:"しゅうちゅうハチマキ", icon:"🎯", base:300, growth:300, max:2,  desc:"わざゲージが はやくたまる" },
 ];
 
-/* =========================================================
-   セーブ
-   ========================================================= */
+/* ===== セーブ ===== */
 const SAVE_KEY = "kanjiQuestSave_v2";
 let save = loadSave();
 function defaultSave(){ return { coins:0, owned:["hero"], equipped:"hero", skills:["punch"], skillEquipped:"punch", items:{hp:0,atk:0,luck:0,charge:0} }; }
 function loadSave(){
   try{
-    const raw=localStorage.getItem(SAVE_KEY);
-    if(!raw) return defaultSave();
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return defaultSave();
     const s=Object.assign(defaultSave(), JSON.parse(raw));
     s.items=Object.assign({hp:0,atk:0,luck:0,charge:0}, s.items||{});
     if(!Array.isArray(s.skills)||!s.skills.length) s.skills=["punch"];
@@ -1478,9 +1513,7 @@ function loadSave(){
 }
 function persist(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} refreshCoinHud(); }
 function refreshCoinHud(){
-  $("titleCoins").textContent=save.coins;
-  $("battleCoins").textContent=save.coins;
-  $("shopCoins").textContent=save.coins;
+  $("titleCoins").textContent=save.coins; $("battleCoins").textContent=save.coins; $("shopCoins").textContent=save.coins;
   $("titleAvatar").innerHTML=medallionHTML(save.equipped,"sm");
 }
 function getAvatar(){ return AVATARS.find(a=>a.id===save.equipped)||AVATARS[0]; }
@@ -1490,14 +1523,12 @@ function baseAtk(){ return 1 + (save.items.atk||0) + getAvatar().atk; }
 function coinPerHit(){ return 5 + 2*(save.items.luck||0); }
 function gaugeMax(){ return Math.max(2, 4 - (save.items.charge||0)); }
 
-/* =========================================================
-   状態
-   ========================================================= */
+/* ===== 状態 ===== */
 const state = {
   grade:1, mode:"easy", stage:0,
   playerMaxHp:6, playerHp:6, atk:1, gauge:0,
   enemyMaxHp:0, enemyHp:0,
-  pool:[], poolIdx:0,
+  pool:[], poolIdx:0, curEntry:null, curAnswer:null,
   correct:0, total:0, earned:0, combo:0, maxCombo:0, poison:0,
   locked:false, skillBusy:false, timerId:null, timeLeft:0, timeDur:10,
 };
@@ -1508,9 +1539,7 @@ function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const
 function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
-/* =========================================================
-   タイトル
-   ========================================================= */
+/* ===== タイトル ===== */
 const GRADE_LABELS = { 1:["1年","にゅうもん"], 2:["2年","やさしい"], 3:["3年","ふつう"], 4:["4年","ちょいむず"], 5:["5年","むずかしい"], 6:["6年","とてもむず"] };
 function buildGradeButtons(){
   const wrap=$("gradeBtns"); wrap.innerHTML="";
@@ -1523,16 +1552,14 @@ function buildGradeButtons(){
 }
 document.querySelectorAll("#modeSeg button").forEach(b=>{ b.onclick=()=>{ document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; }; });
 
-/* =========================================================
-   ゲーム開始
-   ========================================================= */
+/* ===== 開始 ===== */
 function startGame(grade){
   state.grade=grade; state.stage=0;
   state.playerMaxHp=baseMaxHp(); state.playerHp=state.playerMaxHp;
   state.atk=baseAtk(); state.gauge=0; state.skillBusy=false;
   state.pool=shuffle(KANJI_DATA[grade]); state.poolIdx=0;
   state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0;
-  state.timeDur = (state.mode==="easy"?14:9);
+  state.timeDur = (state.mode==="easy"?14:(state.mode==="hard"?9:0));
   $("playerSprite").innerHTML=avatarSVG(save.equipped,90);
   $("playerLvl").textContent="(攻"+state.atk+")";
   show("battle"); loadStage();
@@ -1541,8 +1568,7 @@ function loadStage(){
   stopTimer();
   const m=MONSTERS[state.stage];
   state.enemyMaxHp=m.hp; state.enemyHp=m.hp; state.poison=0;
-  $("enemyName").textContent=m.name;
-  $("enemySprite").textContent=m.sprite;
+  $("enemyName").textContent=m.name; $("enemySprite").textContent=m.sprite;
   $("enemySprite").classList.add("pop"); setTimeout(()=>$("enemySprite").classList.remove("pop"),400);
   $("stageBadge").textContent=`ステージ ${state.stage+1} / ${MONSTERS.length}`;
   updateBars(); updateGauge(); updateCombo();
@@ -1574,18 +1600,14 @@ function updateCombo(){
   else b.classList.remove("show");
 }
 
-/* =========================================================
-   タイマー
-   ========================================================= */
+/* ===== タイマー ===== */
 function startTimer(){
-  stopTimer();
-  state.timeLeft=state.timeDur;
-  $("timerWrap").style.visibility="visible";
+  stopTimer(); if(state.timeDur<=0){ $("timerWrap").style.visibility="hidden"; return; }
+  state.timeLeft=state.timeDur; $("timerWrap").style.visibility="visible";
   const bar=$("timerBar"); bar.style.width="100%"; bar.style.background="linear-gradient(90deg,#34d399,#10b981)";
   state.timerId=setInterval(()=>{
     state.timeLeft-=0.1;
-    const pct=Math.max(0,state.timeLeft/state.timeDur)*100;
-    bar.style.width=pct+"%";
+    const pct=Math.max(0,state.timeLeft/state.timeDur)*100; bar.style.width=pct+"%";
     if(pct<30) bar.style.background="linear-gradient(90deg,#fb7185,#ef4444)";
     else if(pct<60) bar.style.background="linear-gradient(90deg,#fbbf24,#f59e0b)";
     if(state.timeLeft<=0){ stopTimer(); onTimeout(); }
@@ -1593,9 +1615,7 @@ function startTimer(){
 }
 function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.timerId=null; } }
 
-/* =========================================================
-   出題
-   ========================================================= */
+/* ===== 出題 ===== */
 function nextEntry(){ if(state.poolIdx>=state.pool.length){ state.pool=shuffle(state.pool); state.poolIdx=0; } return state.pool[state.poolIdx++]; }
 function distractReadings(field,answer){ const set=[...new Set(state.pool.map(e=>e[field]).filter(r=>r&&r!==answer))]; return shuffle(set).slice(0,3); }
 function buildReadingQ(entry,field,hint,tag){ const answer=entry[field]; return { tag, prompt:entry.k, hint, answer, options:shuffle([answer,...distractReadings(field,answer)]), mainClass:"" }; }
@@ -1621,122 +1641,224 @@ function makeQuestion(entry){
   }
 }
 function nextQuestion(){
-  // どくダメージ
   if(state.poison>0){
     state.poison--; state.playerHp-=1;
-    floatDamage("player","☠1",false,"poison"); hurtFlash(); attackAnim("player");
-    updateBars();
+    floatDamage("player","☠1",false,"poison"); hurtFlash(); attackAnim("player"); updateBars();
     if(state.playerHp<=0){ gameOver(); return; }
   }
-  state.locked=false; state.curAnswer=null;
-  const q=makeQuestion(nextEntry());
-  state.curAnswer=q.answer;
+  state.locked=false;
+  const entry=nextEntry(); state.curEntry=entry;
+  $("quizArea").style.display="block"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none";
+  if(state.mode==="write"){ renderWriteQuestion(entry); return; }
+  const q=makeQuestion(entry); state.curAnswer=q.answer;
   setMessage("クイズ！ こたえをえらんでね");
-  $("qtag").textContent=q.tag;
-  $("quizMain").className="quiz-main "+q.mainClass;
-  $("quizMain").textContent=q.prompt;
-  $("quizHint").textContent=q.hint;
-  const box=$("choices"); box.innerHTML="";
+  $("qtag").textContent=q.tag; $("quizMain").className="quiz-main "+q.mainClass; $("quizMain").textContent=q.prompt; $("quizHint").textContent=q.hint;
+  $("writeArea").style.display="none";
+  const box=$("choices"); box.style.display="grid"; box.innerHTML="";
   q.options.forEach(opt=>{ const b=document.createElement("button"); b.className="choice"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===q.answer,q.answer); box.appendChild(b); });
-  $("quizArea").style.display="block"; $("nextBtn").style.display="none";
   startTimer();
 }
+function renderWriteQuestion(entry){
+  state.curAnswer=entry.k;
+  $("qtag").textContent="✏️てがき"; $("quizMain").className="quiz-main reading";
+  const blanked = entry.ew ? entry.ew.split(entry.k).join("▢") : "";
+  if(entry.ew && entry.er && blanked!==entry.ew){
+    setMessage("ことばの ▢（しかく）に 入る かんじを かこう！（▢の かんじ だけ）");
+    $("quizMain").textContent = makeSentence(blanked, entry);
+    $("quizHint").textContent = `よみ：${entry.er}`;
+  } else {
+    const reading=entry.kun||entry.on||entry.k;
+    setMessage("この よみの 漢字を かこう！");
+    $("quizMain").textContent = reading;
+    $("quizHint").textContent = "かけたら「こたえる」を おしてね";
+  }
+  $("choices").style.display="none"; $("writeArea").style.display="block";
+  $("timerWrap").style.visibility="hidden";
+  $("recogInfo").innerHTML=""; $("submitWriteBtn").disabled=false;
+  clearPad(); resizePad();
+}
+/* かならず正しい日本語になるものだけ文にする。それ以外は「ことばの穴埋め」だけ表示 */
+function makeSentence(cloze, entry){
+  const oku = entry.ew && entry.ew.length>=2 && [...entry.ew].slice(1).every(c=>/[ぁ-んァ-ヶー]/.test(c)) && entry.ew[0]===entry.k;
+  // い形容詞（〜い）だけ「とても〜。」、動詞（送りがな付き）だけ「〜。」
+  if(oku && entry.p==="a" && entry.ew.endsWith("い")) return `とても ${cloze}。`;
+  if(oku && entry.p==="v") return `${cloze}。`;
+  // 名詞・じゅくご・その他は、ことばのまま（穴埋め）。へんな文を作らない
+  return cloze;
+}
 
-/* 解答 */
+/* ===== 解答 共通処理 ===== */
+function finishCorrect(){
+  state.correct++; state.combo++; state.maxCombo=Math.max(state.maxCombo,state.combo);
+  const crit = state.combo%5===0;
+  const gain = coinPerHit()+(crit?10:0); addCoins(gain);
+  const dmg = state.atk*(crit?3:1); state.enemyHp-=dmg;
+  state.gauge=Math.min(gaugeMax(),state.gauge+1);
+  attackAnim("enemy"); floatDamage("enemy",dmg,crit); if(crit)critFlash(); floatCoin(gain);
+  setMessage(crit?`⭐クリティカル！ ${dmg} ダメージ！（🪙+${gain}）`:`せいかい！ ${dmg} ダメージ！💥（🪙+${gain}）`);
+  if(state.gauge>=gaugeMax()) setTimeout(()=>setMessage("⚡ゲージMAX！「わざ！」ボタンを すきなときに！"),520);
+  updateBars(); updateGauge(); updateCombo();
+  setTimeout(()=>{
+    if(state.enemyHp<=0){ stageClear(); return; }
+    if(Math.random()<enemyChance()){ enemyAttack(()=>setTimeout(proceedNext,260)); } else proceedNext();
+  },820);
+}
+function finishWrong(msg){
+  state.combo=0; updateCombo(); setMessage(msg);
+  setTimeout(()=>enemyAttack(()=>setTimeout(proceedNext,260)),480);
+}
 function answerChosen(btn, isCorrect, answer){
   if(state.locked) return;
   state.locked=true; stopTimer(); state.total++;
   document.querySelectorAll(".choice").forEach(c=>{ c.disabled=true; if(c.textContent===answer) c.classList.add("correct"); });
-
-  if(isCorrect){
-    state.combo++; state.maxCombo=Math.max(state.maxCombo,state.combo); state.correct++;
-    const crit = state.combo>0 && state.combo%5===0;
-    const gain = coinPerHit() + (crit?10:0);
-    addCoins(gain);
-    const dmg = state.atk * (crit?3:1);
-    state.enemyHp-=dmg;
-    state.gauge=Math.min(gaugeMax(), state.gauge+1);
-    attackAnim("enemy"); floatDamage("enemy",dmg,crit);
-    if(crit) critFlash();
-    floatCoin(gain);
-    setMessage(crit ? `⭐クリティカル！ ${dmg} ダメージ！（🪙+${gain}）` : `せいかい！ ${dmg} ダメージ！💥（🪙+${gain}）`);
-    if(state.gauge>=gaugeMax()) setTimeout(()=>setMessage("⚡ゲージMAX！「わざ！」ボタンを すきなときに！"),520);
-    updateBars(); updateGauge(); updateCombo();
-    setTimeout(()=>{
-      if(state.enemyHp<=0){ stageClear(); return; }
-      if(Math.random() < enemyChance()){ enemyAttack(()=>setTimeout(proceedNext,260)); }
-      else proceedNext();
-    }, 820);
-  } else {
-    state.combo=0; updateCombo();
-    btn.classList.add("wrong");
-    setMessage(`ざんねん…！ こたえは「${answer}」`);
-    setTimeout(()=>enemyAttack(()=>setTimeout(proceedNext,260)), 480);
-  }
+  if(isCorrect) finishCorrect(); else { btn.classList.add("wrong"); finishWrong(`ざんねん…！ こたえは「${answer}」`); }
 }
 function onTimeout(){
   if(state.locked) return;
-  state.locked=true; state.total++; state.combo=0; updateCombo();
+  state.locked=true; state.total++;
   const ans=state.curAnswer;
   document.querySelectorAll(".choice").forEach(c=>{ c.disabled=true; if(c.textContent===ans) c.classList.add("correct"); });
-  setMessage(`じかんぎれ！ こたえは「${ans}」`);
-  setTimeout(()=>enemyAttack(()=>setTimeout(proceedNext,260)), 480);
+  finishWrong(`じかんぎれ！ こたえは「${ans}」`);
 }
 function proceedNext(){
   if(state.enemyHp<=0){ stageClear(); return; }
   if(state.playerHp<=0){ gameOver(); return; }
   $("quizArea").style.display="none"; $("nextBtn").style.display="block"; $("timerWrap").style.visibility="hidden";
+  $("afterOrderBtn").style.display = state.curEntry ? "block" : "none";
 }
 $("nextBtn").onclick = nextQuestion;
+$("afterOrderBtn").onclick = ()=>{ if(state.curEntry) showStroke(state.curEntry.k); };
 function addCoins(n){ save.coins+=n; state.earned+=n; persist(); }
-function enemyChance(){ return MONSTERS[state.stage].chance * (state.mode==="easy"?0.55:1); }
+function enemyChance(){ return MONSTERS[state.stage].chance * (state.mode==="easy"?0.55:(state.mode==="write"?0.7:1)); }
 
-/* 敵の攻撃 */
+/* ===== 手書き認識 ===== */
+let pad={canvas:null,ctx:null,strokes:[],cur:null,drawing:false,dpr:1};
+function initPad(){
+  const c=$("padCanvas"); if(!c) return;
+  pad.canvas=c; pad.ctx=c.getContext("2d");
+  const down=e=>{ if(state.locked&&state.mode==="write"&&!$("submitWriteBtn").disabled){} pad.drawing=true; pad.cur={x:[],y:[]}; addPt(e); e.preventDefault(); };
+  const move=e=>{ if(!pad.drawing) return; addPt(e); drawPad(); e.preventDefault(); };
+  const up=e=>{ if(!pad.drawing) return; pad.drawing=false; if(pad.cur&&pad.cur.x.length) pad.strokes.push(pad.cur); pad.cur=null; };
+  c.addEventListener("pointerdown",down);
+  c.addEventListener("pointermove",move);
+  window.addEventListener("pointerup",up);
+  c.addEventListener("pointercancel",up);
+}
+function ptFromEvent(e){ const r=pad.canvas.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+function addPt(e){ if(!pad.cur)return; const p=ptFromEvent(e); pad.cur.x.push(Math.round(p.x)); pad.cur.y.push(Math.round(p.y)); }
+function resizePad(){ const c=pad.canvas; if(!c) return; const w=c.clientWidth||300, h=c.clientHeight||190; pad.dpr=window.devicePixelRatio||1; c.width=w*pad.dpr; c.height=h*pad.dpr; pad.ctx.setTransform(pad.dpr,0,0,pad.dpr,0,0); drawPad(); }
+function drawGuide(){ const ctx=pad.ctx, w=pad.canvas.clientWidth, h=pad.canvas.clientHeight; ctx.clearRect(0,0,w,h); ctx.save(); ctx.strokeStyle="#e2e8f0"; ctx.setLineDash([6,7]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(w/2,8); ctx.lineTo(w/2,h-8); ctx.moveTo(8,h/2); ctx.lineTo(w-8,h/2); ctx.stroke(); ctx.restore(); }
+function drawPad(){ if(!pad.ctx) return; drawGuide(); const ctx=pad.ctx; ctx.strokeStyle="#1f2438"; ctx.lineWidth=7; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.setLineDash([]); const draw=s=>{ ctx.beginPath(); for(let i=0;i<s.x.length;i++){ if(i===0)ctx.moveTo(s.x[i],s.y[i]); else ctx.lineTo(s.x[i],s.y[i]); } if(s.x.length===1)ctx.lineTo(s.x[0]+0.1,s.y[0]+0.1); ctx.stroke(); }; pad.strokes.forEach(draw); if(pad.cur)draw(pad.cur); }
+function clearPad(){ pad.strokes=[]; pad.cur=null; drawPad(); }
+async function recognizeKanji(){
+  const w=Math.round(pad.canvas.clientWidth), h=Math.round(pad.canvas.clientHeight);
+  const ink=pad.strokes.map(s=>[s.x,s.y]);
+  const body={options:"enable_pre_space",requests:[{writing_guide:{writing_area_width:w,writing_area_height:h},ink:ink,language:"ja"}]};
+  const res=await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=mobilesearch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const data=await res.json();
+  if(data[0]==="SUCCESS"&&data[1]&&data[1][0]&&data[1][0][1]) return data[1][0][1];
+  return [];
+}
+async function submitWrite(){
+  if(state.locked) return;
+  if(pad.strokes.length===0){ $("recogInfo").innerHTML="✏️ なにか かいてね"; return; }
+  state.locked=true; $("submitWriteBtn").disabled=true; $("recogInfo").innerHTML="にんしき ちゅう…⏳";
+  const target=state.curAnswer;
+  let cands;
+  try{ cands=await recognizeKanji(); }catch(e){ cands=null; }
+  state.total++;
+  if(cands===null){
+    $("recogInfo").innerHTML=`ネットにつながらず はんていできません。<br>こたえは <b>${target}</b><div class="fallback-btns"><button class="fb-ok">かけた○</button><button class="fb-ng">ちがった×</button></div>`;
+    $("recogInfo").querySelector(".fb-ok").onclick=()=>finishCorrect();
+    $("recogInfo").querySelector(".fb-ng").onclick=()=>finishWrong(`こたえは「${target}」だよ`);
+    return;
+  }
+  const ok=cands.slice(0,10).includes(target);
+  $("recogInfo").innerHTML = ok ? `にんしき：<b>${target}</b> ⭕ せいかい！` : `にんしき：<b>${cands[0]||"？"}</b>　せいかいは <b>${target}</b>`;
+  if(ok) finishCorrect(); else finishWrong(`おしい！ こたえは「${target}」`);
+}
+$("clearBtn").onclick = ()=>{ if(!state.locked) clearPad(); $("recogInfo").innerHTML=""; };
+$("submitWriteBtn").onclick = submitWrite;
+
+/* ===== 書き順アニメ（KanjiVG） ===== */
+const strokeCache = {};
+async function fetchStrokes(kanji){
+  if(strokeCache[kanji]) return strokeCache[kanji];
+  const cp = kanji.codePointAt(0).toString(16).padStart(5,'0');
+  const url = `https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji/${cp}.svg`;
+  const res = await fetch(url);
+  const txt = await res.text();
+  const ds = (txt.match(/ d="[^"]*"/g)||[]).map(s=>s.slice(4,-1));
+  strokeCache[kanji] = ds;
+  return ds;
+}
+let strokeTimers = [];
+function clearStrokeTimers(){ strokeTimers.forEach(t=>clearTimeout(t)); strokeTimers=[]; }
+async function showStroke(kanji){
+  const modal=$("strokeModal"), stage=$("strokeStage");
+  state.curStrokeKanji = kanji;
+  $("strokeTitle").innerHTML = `✍️ 「<b>${kanji}</b>」の 書きじゅん`;
+  stage.innerHTML = "<div style='color:#9aa0ad;font-weight:700'>よみこみ中…</div>";
+  modal.classList.add("show");
+  let ds;
+  try{ ds = await fetchStrokes(kanji); }catch(e){ ds=null; }
+  if(!ds || !ds.length){ stage.innerHTML = "<div style='color:#9aa0ad;font-weight:700'>書き順データが ありません</div>"; return; }
+  playStroke(ds);
+}
+function playStroke(ds){
+  clearStrokeTimers();
+  const stage=$("strokeStage");
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg"); svg.setAttribute("viewBox","0 0 109 109");
+  // うすい お手本（全画）
+  ds.forEach(d=>{ const g=document.createElementNS(NS,"path"); g.setAttribute("d",d); g.setAttribute("class","ghost"); g.setAttribute("fill","none"); g.setAttribute("stroke-width","3.5"); g.setAttribute("stroke-linecap","round"); g.setAttribute("stroke-linejoin","round"); svg.appendChild(g); });
+  const inks=[];
+  ds.forEach(d=>{ const p=document.createElementNS(NS,"path"); p.setAttribute("d",d); p.setAttribute("class","ink"); p.setAttribute("fill","none"); p.setAttribute("stroke-width","4.5"); p.setAttribute("stroke-linecap","round"); p.setAttribute("stroke-linejoin","round"); svg.appendChild(p); inks.push(p); });
+  stage.innerHTML=""; stage.appendChild(svg);
+  const per=520;
+  inks.forEach((p,i)=>{
+    const len=p.getTotalLength();
+    p.style.strokeDasharray=len; p.style.strokeDashoffset=len;
+    strokeTimers.push(setTimeout(()=>{ p.style.transition=`stroke-dashoffset ${per}ms linear`; p.style.strokeDashoffset="0"; }, i*per+200));
+  });
+}
+$("strokeReplay").onclick = ()=>{ const ds=strokeCache[state.curStrokeKanji]; if(ds) playStroke(ds); };
+$("strokeClose").onclick = ()=>{ clearStrokeTimers(); $("strokeModal").classList.remove("show"); };
+$("strokeModal").onclick = (e)=>{ if(e.target===$("strokeModal")){ clearStrokeTimers(); $("strokeModal").classList.remove("show"); } };
+
+/* ===== 敵の攻撃 ===== */
 function enemyAttack(done){
   const m=MONSTERS[state.stage];
   if(state.enemyHp<=0){ done&&done(); return; }
-  const strong = Math.random()<0.15;
-  let dmg = strong ? m.atk*2 : randInt(1,m.atk);
-  // 演出：敵から弾がとんでくる
+  const strong=Math.random()<0.15; let dmg=strong?m.atk*2:randInt(1,m.atk);
   const field=$("field");
-  const p=document.createElement("div"); p.className="foe-proj"; p.textContent=m.atkIcon||"💢";
-  p.style.animation="foeFly .5s forwards"; field.appendChild(p);
+  const p=document.createElement("div"); p.className="foe-proj"; p.textContent=m.atkIcon||"💢"; p.style.animation="foeFly .5s forwards"; field.appendChild(p);
   $("enemySprite").classList.add("shake"); setTimeout(()=>$("enemySprite").classList.remove("shake"),300);
   setTimeout(()=>{
-    p.remove();
-    state.playerHp-=dmg;
+    p.remove(); state.playerHp-=dmg;
     attackAnim("player"); hurtFlash(); floatDamage("player",dmg,strong,"foe");
     setMessage(`${m.name}の${strong?"つよい":""}こうげき！ ${dmg} ダメージ！`);
-    if(m.special==="poison" && state.poison<=0 && Math.random()<0.6){
-      state.poison=2; setTimeout(()=>setMessage("どくを うけた！ しばらく HPがじわじわ へる…"),700);
-    }
-    updateBars();
-    done && done();
-  }, 470);
+    if(m.special==="poison" && state.poison<=0 && Math.random()<0.6){ state.poison=2; setTimeout(()=>setMessage("どくを うけた！ しばらく HPがじわじわ へる…"),700); }
+    updateBars(); done&&done();
+  },470);
 }
 
-/* =========================================================
-   わざ（手動発動）
-   ========================================================= */
+/* ===== わざ（手動） ===== */
 function useSkill(){
   if(state.gauge<gaugeMax()||state.skillBusy) return;
   if(!screens.battle.classList.contains("active")||state.enemyHp<=0) return;
   const sk=equippedSkill(); const dmg=state.atk+sk.power;
   state.gauge=0; state.skillBusy=true; updateGauge();
-  playSkillAnim(sk);
-  setMessage(`⚡わざ「${sk.name}」さくれつ！ ${dmg} ダメージ！`);
+  playSkillAnim(sk); setMessage(`⚡わざ「${sk.name}」さくれつ！ ${dmg} ダメージ！`);
   setTimeout(()=>floatDamage("enemy",dmg,true),560);
   state.enemyHp-=dmg; updateBars();
-  setTimeout(()=>{
-    state.skillBusy=false; updateBars(); updateGauge();
+  setTimeout(()=>{ state.skillBusy=false; updateBars(); updateGauge();
     if(state.enemyHp<=0){ stopTimer(); state.locked=true; $("quizArea").style.display="none"; $("nextBtn").style.display="none"; $("timerWrap").style.visibility="hidden"; stageClear(); }
   },1150);
 }
 $("skillBtn").onclick=useSkill;
 
-/* =========================================================
-   アニメ
-   ========================================================= */
+/* ===== アニメ ===== */
 function attackAnim(target){ const s=target==="enemy"?$("enemySprite"):$("playerSprite"); s.classList.add(target==="enemy"?"shake":"flash"); setTimeout(()=>s.classList.remove("shake","flash"),400); }
 function floatDamage(target,text,big,extra){
   const d=document.createElement("div"); d.className="dmg-float"+(big?" big":"")+(extra?" "+extra:""); d.textContent=text;
@@ -1753,16 +1875,13 @@ function playSkillAnim(sk){
   setTimeout(()=>{ p.remove(); const b=document.createElement("div"); b.className="skill-burst"; b.textContent=sk.burst; field.appendChild(b); setTimeout(()=>b.remove(),600); const es=$("enemySprite"); es.classList.add("shake"); setTimeout(()=>es.classList.remove("shake"),450); },520);
 }
 
-/* =========================================================
-   クリア / ゲームオーバー
-   ========================================================= */
+/* ===== クリア/オーバー ===== */
 function stageClear(){
   stopTimer();
   const m=MONSTERS[state.stage]; const bonus=20+state.stage*10; addCoins(bonus);
   setMessage(`${m.name} を たおした！ 🎊（🪙+${bonus}）`);
-  $("enemySprite").textContent="💨"; $("quizArea").style.display="none"; $("nextBtn").style.display="none"; $("timerWrap").style.visibility="hidden";
-  state.combo=0; updateCombo();
-  state.stage++;
+  $("enemySprite").textContent="💨"; $("quizArea").style.display="none"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none"; $("timerWrap").style.visibility="hidden";
+  state.combo=0; updateCombo(); state.stage++;
   if(state.stage>=MONSTERS.length){ setTimeout(gameClear,1100); }
   else { state.playerHp=Math.min(state.playerMaxHp, state.playerHp+2); updateBars(); setTimeout(loadStage,1300); }
 }
@@ -1781,9 +1900,7 @@ function showResult(emoji,title,win){
   show("result");
 }
 
-/* =========================================================
-   ショップ
-   ========================================================= */
+/* ===== ショップ ===== */
 let shopTab="avatar";
 const SHOP_NOTES = {
   avatar:"そうびすると 戦闘中の見た目がかわり、こうげき力やHPもアップ！ レアなキャラほど つよい✨",
@@ -1798,11 +1915,7 @@ function renderShop(){
   else if(shopTab==="skill") SKILLS.forEach(s=>list.appendChild(renderSkillRow(s)));
   else SHOP_ITEMS.forEach(it=>list.appendChild(renderItemRow(it)));
 }
-function rowEl(iconHTML, nm, ds){
-  const row=document.createElement("div"); row.className="shop-item";
-  row.innerHTML=`${iconHTML}<div class="info"><div class="nm">${nm}</div><div class="ds">${ds}</div></div>`;
-  return row;
-}
+function rowEl(iconHTML, nm, ds){ const row=document.createElement("div"); row.className="shop-item"; row.innerHTML=`${iconHTML}<div class="info"><div class="nm">${nm}</div><div class="ds">${ds}</div></div>`; return row; }
 function buyBtn(opts){
   const btn=document.createElement("button"); btn.className="buy";
   if(opts.equipped){ btn.textContent="そうび中"; btn.classList.add("equipped"); btn.disabled=true; }
@@ -1813,20 +1926,16 @@ function buyBtn(opts){
 function renderAvatarRow(a){
   const ds=`<span class="stars">${RAR_STARS[a.rar]}</span> ${RAR_LABEL[a.rar]}・${a.desc}`;
   const row=rowEl(medallionHTML(a.id), a.name, ds);
-  row.appendChild(buyBtn({
-    owned:save.owned.includes(a.id), equipped:save.equipped===a.id, cost:a.cost,
+  row.appendChild(buyBtn({ owned:save.owned.includes(a.id), equipped:save.equipped===a.id, cost:a.cost,
     onBuy:()=>{ if(save.coins<a.cost)return; save.coins-=a.cost; save.owned.push(a.id); save.equipped=a.id; persist(); renderShop(); },
-    onEquip:()=>{ save.equipped=a.id; persist(); renderShop(); },
-  }));
+    onEquip:()=>{ save.equipped=a.id; persist(); renderShop(); } }));
   return row;
 }
 function renderSkillRow(s){
   const row=rowEl(`<div class="ic">${s.icon}</div>`, s.name, `いりょく ${s.power}　${s.id==="punch"?"（きほんわざ）":""}`);
-  row.appendChild(buyBtn({
-    owned:save.skills.includes(s.id), equipped:save.skillEquipped===s.id, cost:s.cost,
+  row.appendChild(buyBtn({ owned:save.skills.includes(s.id), equipped:save.skillEquipped===s.id, cost:s.cost,
     onBuy:()=>{ if(save.coins<s.cost)return; save.coins-=s.cost; save.skills.push(s.id); save.skillEquipped=s.id; persist(); renderShop(); },
-    onEquip:()=>{ save.skillEquipped=s.id; persist(); renderShop(); },
-  }));
+    onEquip:()=>{ save.skillEquipped=s.id; persist(); renderShop(); } }));
   return row;
 }
 function itemPrice(it){ return it.base + it.growth*(save.items[it.id]||0); }
@@ -1839,18 +1948,18 @@ function renderItemRow(it){
   row.appendChild(btn); return row;
 }
 
-/* =========================================================
-   配線・初期化
-   ========================================================= */
+/* ===== 配線・初期化 ===== */
 $("quitBtn").onclick = () => { if(confirm("タイトルにもどる？")){ stopTimer(); show("title"); } };
 $("backBtn").onclick = () => { refreshCoinHud(); show("title"); };
 $("toShopBtn").onclick = openShop;
 $("shopBackBtn").onclick = () => show("title");
 document.querySelectorAll(".shop-tab").forEach(t => t.onclick = () => setShopTab(t.dataset.tab));
 $("resetBtn").onclick = () => { if(confirm("コインや買ったものを ぜんぶ消して さいしょから にしますか？")){ save=defaultSave(); persist(); renderShop(); } };
+window.addEventListener("resize", ()=>{ if(state.mode==="write" && screens.battle.classList.contains("active")) resizePad(); });
 
 buildGradeButtons();
 refreshCoinHud();
+initPad();
 </script>
 </body>
 </html>
