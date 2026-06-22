@@ -97,13 +97,18 @@
       linear-gradient(#cdeafe 0%, #bfe3ff 56%, #93d68a 56%, #79c46e 100%);
     box-shadow:inset 0 2px 14px rgba(255,255,255,.5), 0 12px 30px rgba(8,10,30,.35);
   }
-  .field::after { content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 30%, transparent 55%, rgba(10,12,40,.18)); pointer-events:none; }
+  .field-bg { position:absolute; inset:0; z-index:0; }
+  .field-bg svg { width:100%; height:100%; display:block; }
+  .field::after { content:""; position:absolute; inset:0; z-index:1; background:radial-gradient(120% 90% at 50% 30%, transparent 55%, rgba(10,12,40,.18)); pointer-events:none; }
   .sprite-wrap { position:absolute; display:flex; flex-direction:column; align-items:center; z-index:2; }
   .enemy-wrap { top:18px; right:26px; }
   .player-wrap { bottom:14px; left:22px; }
   .sprite-glow { position:absolute; top:46%; left:50%; transform:translate(-50%,-50%); width:108px; height:108px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 68%); }
   .player-wrap .sprite-glow { width:96px; height:96px; }
   .enemy-sprite { font-size:78px; line-height:1; position:relative; z-index:1; filter:drop-shadow(0 8px 7px rgba(0,0,0,.32)); animation:bob 2.6s ease-in-out infinite; }
+  .enemy-sprite svg { width:96px; height:96px; display:block; }
+  .enemy-sprite.vanish { animation:vanishGo .6s forwards !important; }
+  @keyframes vanishGo { 0%{transform:scale(1);opacity:1} 30%{transform:scale(1.15) rotate(3deg)} 100%{transform:scale(.25) translateY(14px) rotate(-8deg);opacity:0;filter:blur(2px)} }
   .player-sprite { width:92px; height:92px; display:grid; place-items:center; position:relative; z-index:1; filter:drop-shadow(0 7px 6px rgba(0,0,0,.3)); animation:bob 2.6s ease-in-out infinite .4s; }
   .player-sprite svg { width:90px; height:90px; }
   .ground-shadow { width:64px; height:13px; border-radius:50%; background:rgba(10,20,10,.28); filter:blur(4px); margin-top:-2px; }
@@ -331,9 +336,7 @@
     </div>
 
     <div class="field" id="field">
-      <div class="bg-sun"></div>
-      <div class="bg-cloud c1"></div>
-      <div class="bg-cloud c2"></div>
+      <div class="field-bg" id="fieldBg"></div>
       <div class="nameplate enemy">
         <div class="name" id="enemyName">モンスター</div>
         <div class="hpbar-bg"><div class="hpbar" id="enemyHp"></div></div>
@@ -1139,7 +1142,7 @@ const KANJI_DATA = {
     {k:"容", on:"ヨウ", kun:"", s:10, ew:"内容", er:"ないよう", p:"n"},
     {k:"布", on:"フ", kun:"ぬの", s:5, ew:"財布", er:"さいふ", p:"n"},
     {k:"易", on:"イ", kun:"やさ(しい)", s:8, ew:"易しい", er:"やさしい", p:"a"},
-    {k:"財", on:"サイ", kun:"", s:10, ew:"財産", er:"ざいさん", p:"n"},
+    {k:"財", on:"ザイ", kun:"", s:10, ew:"財産", er:"ざいさん", p:"n"},
     {k:"歴", on:"レキ", kun:"", s:14, ew:"歴史", er:"れきし", p:"n"},
     {k:"団", on:"ダン", kun:"", s:6, ew:"集団", er:"しゅうだん", p:"n"},
     {k:"暴", on:"ボウ", kun:"あば(く)", s:15, ew:"暴力", er:"ぼうりょく", p:"n"},
@@ -1275,7 +1278,7 @@ const KANJI_DATA = {
     {k:"複", on:"フク", kun:"", s:14, ew:"複雑", er:"ふくざつ", p:"n"},
     {k:"雑", on:"ザツ", kun:"", s:14, ew:"雑音", er:"ざつおん", p:"n"},
     {k:"賛", on:"サン", kun:"", s:15, ew:"賛成", er:"さんせい", p:"n"},
-    {k:"酸", on:"サン", kun:"す(い)", s:14, ew:"酸素", er:"さんそ", p:"n"},
+    {k:"酸", on:"サン", kun:"", s:14, ew:"酸素", er:"さんそ", p:"n"},
     {k:"飼", on:"シ", kun:"か(う)", s:13, ew:"飼育", er:"しいく", p:"n"},
     {k:"損", on:"ソン", kun:"そこ(なう)", s:13, ew:"損害", er:"そんがい", p:"n"},
     {k:"枝", on:"シ", kun:"えだ", s:8, ew:"枝", er:"えだ", p:"n"},
@@ -1487,16 +1490,143 @@ const KANJI_DATA = {
 };
 
 const MONSTERS = [
-  { name:"スライム", sprite:"🟢", hp:5,  atk:1, chance:.12, atkIcon:"💧" },
-  { name:"コウモリ", sprite:"🦇", hp:7,  atk:1, chance:.30, atkIcon:"🌀" },
-  { name:"オバケ",   sprite:"👻", hp:9,  atk:2, chance:.22, atkIcon:"🟣" },
-  { name:"サソリ",   sprite:"🦂", hp:12, atk:2, chance:.28, atkIcon:"🟢", special:"poison" },
-  { name:"ゴーレム", sprite:"🗿", hp:15, atk:3, chance:.20, atkIcon:"🪨" },
-  { name:"ドラゴン", sprite:"🐉", hp:18, atk:3, chance:.32, atkIcon:"🔥" },
-  { name:"まおう",   sprite:"😈", hp:24, atk:4, chance:.40, atkIcon:"🟪" },
+  { name:"スライム", sprite:"🟢", art:"slime",  hp:5,  atk:1, chance:.12, atkIcon:"💧" },
+  { name:"コウモリ", sprite:"🦇", art:"bat",    hp:7,  atk:1, chance:.30, atkIcon:"🌀" },
+  { name:"オバケ",   sprite:"👻", art:"ghost",  hp:9,  atk:2, chance:.22, atkIcon:"🟣" },
+  { name:"サソリ",   sprite:"🦂", art:"scorpion",hp:12, atk:2, chance:.28, atkIcon:"🟢", special:"poison" },
+  { name:"ゴーレム", sprite:"🗿", art:"golem",  hp:15, atk:3, chance:.20, atkIcon:"🪨" },
+  { name:"ドラゴン", sprite:"🐉", art:"dragon", hp:18, atk:3, chance:.32, atkIcon:"🔥" },
+  { name:"まおう",   sprite:"😈", art:"demon",  hp:24, atk:4, chance:.40, atkIcon:"🟪" },
 ];
 /* 裏ボス：まおうを 一度たおすと 解禁。つぎの ぼうけんから ステージに 追加される */
-const SECRET_BOSS = { name:"やみのりゅうおう", sprite:"🐲", hp:46, atk:6, chance:.5, atkIcon:"🟪", special:"poison", secret:true };
+const SECRET_BOSS = { name:"やみのりゅうおう", sprite:"🐲", art:"darkdragon", hp:46, atk:6, chance:.5, atkIcon:"🟪", special:"poison", secret:true };
+
+/* ===== モンスターの手描きSVG（案A）===== */
+function monsterSVG(id){
+  const f = MONSTER_ART[id]; if(!f) return "";
+  return `<svg viewBox="0 0 100 100" width="100" height="100" xmlns="http://www.w3.org/2000/svg">${f()}</svg>`;
+}
+const EYE = (cx,cy,r,pr)=>`<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*1.25}" fill="#fff"/><circle cx="${cx}" cy="${cy+1}" r="${pr||r*0.55}" fill="#222a3a"/><circle cx="${cx+1}" cy="${cy-1}" r="${(pr||r*0.55)*0.4}" fill="#fff"/>`;
+const MONSTER_ART = {
+  slime:()=>`<defs><radialGradient id="m_sl" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="#b7f08a"/><stop offset=".55" stop-color="#6fc34a"/><stop offset="1" stop-color="#3f8f30"/></radialGradient></defs>
+    <path d="M20 66 C20 22 80 22 80 66 C80 82 64 79 56 81 C48 83 40 83 32 81 C26 80 20 80 20 66 Z" fill="url(#m_sl)"/>
+    <ellipse cx="40" cy="40" rx="14" ry="8" fill="#fff" opacity=".5"/><circle cx="65" cy="35" r="2.6" fill="#fff" opacity=".75"/>
+    ${EYE(40,57,6)}${EYE(60,57,6)}
+    <ellipse cx="31" cy="67" rx="5" ry="3" fill="#ff8fb0" opacity=".55"/><ellipse cx="69" cy="67" rx="5" ry="3" fill="#ff8fb0" opacity=".55"/>
+    <path d="M44 67 Q50 72 56 67" stroke="#243018" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  bat:()=>`<defs><radialGradient id="m_bt" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#b388f0"/><stop offset=".6" stop-color="#7c4fd0"/><stop offset="1" stop-color="#4a2a8c"/></radialGradient></defs>
+    <path d="M36 52 C20 40 8 46 3 60 C12 58 12 58 12 58 L10 70 L22 62 L22 72 L34 62 Z" fill="#5a32a0"/>
+    <path d="M64 52 C80 40 92 46 97 60 C88 58 88 58 88 58 L90 70 L78 62 L78 72 L66 62 Z" fill="#5a32a0"/>
+    <path d="M38 30 L33 16 L47 26 Z" fill="#6b3fb0"/><path d="M62 30 L67 16 L53 26 Z" fill="#6b3fb0"/>
+    <ellipse cx="50" cy="56" rx="22" ry="20" fill="url(#m_bt)"/>
+    <ellipse cx="44" cy="46" rx="9" ry="6" fill="#fff" opacity=".25"/>
+    ${EYE(42,54,5)}${EYE(58,54,5)}
+    <path d="M44 68 L48 74 L52 68 L56 74 L60 68" fill="none" stroke="#3a2070" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M46 66 L48 71 L50 66 Z" fill="#fff"/><path d="M54 66 L56 71 L58 66 Z" fill="#fff"/>`,
+  ghost:()=>`<defs><linearGradient id="m_gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfe0f5"/></linearGradient></defs>
+    <path d="M24 54 C24 28 76 28 76 54 L76 82 L68 73 L60 82 L52 73 L44 82 L36 73 L24 82 Z" fill="url(#m_gh)" opacity=".95"/>
+    <ellipse cx="40" cy="44" rx="11" ry="7" fill="#fff" opacity=".6"/>
+    <ellipse cx="41" cy="52" rx="5" ry="7" fill="#3a4256"/><ellipse cx="59" cy="52" rx="5" ry="7" fill="#3a4256"/>
+    <ellipse cx="50" cy="64" rx="5" ry="6" fill="#3a4256"/>
+    <ellipse cx="32" cy="60" rx="4.5" ry="3" fill="#b9d0ee" opacity=".7"/><ellipse cx="68" cy="60" rx="4.5" ry="3" fill="#b9d0ee" opacity=".7"/>`,
+  scorpion:()=>`<defs><radialGradient id="m_sc" cx=".4" cy=".35" r=".85"><stop offset="0" stop-color="#9fd14a"/><stop offset=".6" stop-color="#6f9e2a"/><stop offset="1" stop-color="#4a6b18"/></radialGradient></defs>
+    <path d="M70 64 C84 60 90 46 86 34 C82 40 80 44 76 46" fill="none" stroke="#6f9e2a" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="86" cy="34" r="6" fill="#7c52c0"/><path d="M86 28 L90 22 L92 30 Z" fill="#9b6fe0"/>
+    <ellipse cx="48" cy="62" rx="24" ry="15" fill="url(#m_sc)"/>
+    <path d="M30 56 C18 50 14 56 16 64 L24 60 L22 68 L32 62 Z" fill="#6f9e2a"/>
+    <path d="M66 56 C78 50 82 56 80 64 L72 60 L74 68 L64 62 Z" fill="#6f9e2a"/>
+    ${EYE(42,60,4)}${EYE(54,60,4)}
+    <path d="M40 70 Q48 74 56 70" stroke="#33490f" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  golem:()=>`<defs><linearGradient id="m_go" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8b0bc"/><stop offset="1" stop-color="#6b7280"/></linearGradient></defs>
+    <rect x="20" y="50" width="12" height="22" rx="4" fill="#7c8490"/><rect x="68" y="50" width="12" height="22" rx="4" fill="#7c8490"/>
+    <rect x="28" y="30" width="44" height="48" rx="12" fill="url(#m_go)"/>
+    <path d="M40 30 L44 48 L36 56" fill="none" stroke="#565d68" stroke-width="2"/><path d="M62 40 L54 52" fill="none" stroke="#565d68" stroke-width="2"/>
+    <ellipse cx="38" cy="48" rx="5" ry="4" fill="#7be0ff"/><ellipse cx="38" cy="48" rx="2" ry="2" fill="#0a3b4a"/>
+    <ellipse cx="60" cy="48" rx="5" ry="4" fill="#7be0ff"/><ellipse cx="60" cy="48" rx="2" ry="2" fill="#0a3b4a"/>
+    <rect x="42" y="62" width="16" height="5" rx="2" fill="#4b515b"/>
+    <ellipse cx="40" cy="36" rx="12" ry="5" fill="#fff" opacity=".18"/>`,
+  dragon:()=>`<defs><radialGradient id="m_dr" cx=".4" cy=".32" r=".85"><stop offset="0" stop-color="#ff8a5a"/><stop offset=".55" stop-color="#e0492a"/><stop offset="1" stop-color="#a52818"/></radialGradient></defs>
+    <path d="M28 40 C12 30 6 40 10 52 C16 46 20 46 24 48 Z" fill="#c83a22"/>
+    <path d="M72 40 C88 30 94 40 90 52 C84 46 80 46 76 48 Z" fill="#c83a22"/>
+    <path d="M36 30 L30 14 L44 26 Z" fill="#ffe0b0"/><path d="M64 30 L70 14 L56 26 Z" fill="#ffe0b0"/>
+    <ellipse cx="50" cy="56" rx="26" ry="24" fill="url(#m_dr)"/>
+    <ellipse cx="50" cy="66" rx="15" ry="13" fill="#ffd9a8"/>
+    <ellipse cx="42" cy="44" rx="9" ry="6" fill="#fff" opacity=".25"/>
+    <ellipse cx="40" cy="52" rx="6" ry="7" fill="#fff"/><ellipse cx="60" cy="52" rx="6" ry="7" fill="#fff"/>
+    <path d="M37 53 Q40 49 43 53" fill="#fff"/><path d="M57 53 Q60 49 63 53" fill="#fff"/>
+    <ellipse cx="40" cy="53" rx="2.4" ry="4" fill="#1f2a1a"/><ellipse cx="60" cy="53" rx="2.4" ry="4" fill="#1f2a1a"/>
+    <ellipse cx="45" cy="66" rx="2" ry="1.4" fill="#a52818"/><ellipse cx="55" cy="66" rx="2" ry="1.4" fill="#a52818"/>
+    <path d="M42 72 Q50 76 58 72" stroke="#7a1e10" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M44 72 L46 68 L48 72 Z" fill="#fff"/><path d="M52 72 L54 68 L56 72 Z" fill="#fff"/>`,
+  demon:()=>`<defs><radialGradient id="m_de" cx=".4" cy=".32" r=".85"><stop offset="0" stop-color="#8a2c3a"/><stop offset=".55" stop-color="#5c1726"/><stop offset="1" stop-color="#360b16"/></radialGradient></defs>
+    <path d="M30 36 C18 22 26 10 30 8 C30 20 36 26 40 30 Z" fill="#c0392b"/>
+    <path d="M70 36 C82 22 74 10 70 8 C70 20 64 26 60 30 Z" fill="#c0392b"/>
+    <ellipse cx="50" cy="58" rx="27" ry="25" fill="url(#m_de)"/>
+    <ellipse cx="42" cy="46" rx="9" ry="6" fill="#ff5a5a" opacity=".2"/>
+    <path d="M33 50 L48 55 L33 58 Z" fill="#ffd24a"/><path d="M67 50 L52 55 L67 58 Z" fill="#ffd24a"/>
+    <ellipse cx="40" cy="54" rx="3" ry="3.4" fill="#3a0a0a"/><ellipse cx="60" cy="54" rx="3" ry="3.4" fill="#3a0a0a"/>
+    <path d="M38 70 L42 65 L46 70 L50 65 L54 70 L58 65 L62 70 Z" fill="#fff" stroke="#5c1726" stroke-width="1"/>
+    <path d="M38 70 Q50 78 62 70" fill="#6b0f0f"/>`,
+  darkdragon:()=>`<defs><radialGradient id="m_dk" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#7b4fd6"/><stop offset=".55" stop-color="#4a1f9c"/><stop offset="1" stop-color="#240a52"/></radialGradient></defs>
+    <path d="M26 42 C6 28 0 42 6 56 C14 48 20 48 24 50 Z" fill="#3a1880"/>
+    <path d="M74 42 C94 28 100 42 94 56 C86 48 80 48 76 50 Z" fill="#3a1880"/>
+    <path d="M34 28 L26 8 L44 24 Z" fill="#c0b0f0"/><path d="M66 28 L74 8 L56 24 Z" fill="#c0b0f0"/>
+    <ellipse cx="50" cy="56" rx="28" ry="26" fill="url(#m_dk)"/>
+    <ellipse cx="50" cy="66" rx="15" ry="13" fill="#3a1f6e"/>
+    <ellipse cx="41" cy="44" rx="9" ry="6" fill="#fff" opacity=".18"/>
+    <ellipse cx="40" cy="52" rx="6.5" ry="7.5" fill="#ff3df0"/><ellipse cx="60" cy="52" rx="6.5" ry="7.5" fill="#ff3df0"/>
+    <ellipse cx="40" cy="52" rx="2.6" ry="5" fill="#2a0033"/><ellipse cx="60" cy="52" rx="2.6" ry="5" fill="#2a0033"/>
+    <path d="M40 72 L44 67 L48 72 L52 67 L56 72 L60 67" fill="none" stroke="#e0d0ff" stroke-width="2" stroke-linejoin="round"/>`,
+};
+
+/* ===== ステージ別の背景（案B）===== */
+function stageBg(i){
+  const t = STAGE_BG[Math.min(i, STAGE_BG.length-1)];
+  return `<svg viewBox="0 0 480 216" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">${t()}</svg>`;
+}
+const STAGE_BG = [
+  ()=>`<defs><linearGradient id="b0s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff"/><stop offset="1" stop-color="#e8f6ff"/></linearGradient><linearGradient id="b0g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd47a"/><stop offset="1" stop-color="#5fa84a"/></linearGradient></defs>
+    <rect width="480" height="150" fill="url(#b0s)"/><circle cx="70" cy="44" r="30" fill="#fff3b0" opacity=".8"/>
+    <ellipse cx="150" cy="50" rx="34" ry="13" fill="#fff" opacity=".85"/><ellipse cx="360" cy="36" rx="40" ry="15" fill="#fff" opacity=".8"/>
+    <ellipse cx="90" cy="160" rx="150" ry="44" fill="#7cc265"/><ellipse cx="400" cy="166" rx="170" ry="48" fill="#6fb858"/>
+    <rect y="150" width="480" height="66" fill="url(#b0g)"/>`,
+  ()=>`<defs><linearGradient id="b1s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb172"/><stop offset=".5" stop-color="#a66db0"/><stop offset="1" stop-color="#4a3f7a"/></linearGradient></defs>
+    <rect width="480" height="150" fill="url(#b1s)"/><circle cx="380" cy="46" r="24" fill="#fff7e0" opacity=".9"/>
+    <path d="M0 150 L0 110 Q120 80 240 108 Q360 134 480 100 L480 150 Z" fill="#5b4a86" opacity=".9"/>
+    <rect y="150" width="480" height="66" fill="#3a3060"/><path d="M0 150 Q240 138 480 150 L480 160 L0 160 Z" fill="#4a3f7a"/>`,
+  ()=>`<defs><linearGradient id="b2s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141d3a"/><stop offset="1" stop-color="#0c1228"/></linearGradient></defs>
+    <rect width="480" height="216" fill="url(#b2s)"/><circle cx="80" cy="44" r="22" fill="#eef2ff" opacity=".9"/><circle cx="80" cy="44" r="34" fill="#cdd6ff" opacity=".12"/>
+    <circle cx="180" cy="30" r="1.6" fill="#fff"/><circle cx="260" cy="56" r="1.4" fill="#fff"/><circle cx="330" cy="26" r="1.8" fill="#fff"/><circle cx="420" cy="50" r="1.4" fill="#fff"/><circle cx="140" cy="70" r="1.3" fill="#fff"/>
+    <rect y="150" width="480" height="66" fill="#1a2138"/>
+    <rect x="60" y="120" width="26" height="34" rx="13" fill="#39415a"/><rect x="200" y="126" width="22" height="28" rx="11" fill="#333b52"/><rect x="360" y="118" width="28" height="36" rx="14" fill="#39415a"/>
+    <ellipse cx="240" cy="156" rx="240" ry="16" fill="#aeb8d6" opacity=".08"/>`,
+  ()=>`<defs><linearGradient id="b3s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd98a"/><stop offset="1" stop-color="#ffb878"/></linearGradient><linearGradient id="b3g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9c079"/><stop offset="1" stop-color="#cf9e54"/></linearGradient></defs>
+    <rect width="480" height="150" fill="url(#b3s)"/><circle cx="390" cy="50" r="28" fill="#fff1c0" opacity=".9"/>
+    <ellipse cx="120" cy="158" rx="150" ry="40" fill="#e3b96e"/><ellipse cx="400" cy="164" rx="160" ry="44" fill="#dab063"/>
+    <rect y="150" width="480" height="66" fill="url(#b3g)"/>
+    <g fill="#3f7a4a"><rect x="60" y="116" width="9" height="34" rx="4"/><rect x="49" y="126" width="9" height="6" rx="3"/><rect x="71" y="122" width="9" height="6" rx="3"/></g>`,
+  ()=>`<defs><linearGradient id="b4s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b414d"/><stop offset="1" stop-color="#23272f"/></linearGradient></defs>
+    <rect width="480" height="216" fill="url(#b4s)"/>
+    <g fill="#2c313b"><path d="M40 0 L52 0 L46 34 Z"/><path d="M120 0 L134 0 L127 46 Z"/><path d="M300 0 L312 0 L306 30 Z"/><path d="M400 0 L416 0 L408 40 Z"/></g>
+    <ellipse cx="160" cy="60" rx="6" ry="10" fill="#7be0ff" opacity=".5"/><ellipse cx="350" cy="80" rx="5" ry="9" fill="#7be0ff" opacity=".45"/>
+    <rect y="150" width="480" height="66" fill="#2a2f38"/><path d="M0 150 Q120 134 240 150 Q360 166 480 148 L480 160 L0 160 Z" fill="#343a44"/>`,
+  ()=>`<defs><linearGradient id="b5s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a1e1e"/><stop offset="1" stop-color="#2a0d0d"/></linearGradient></defs>
+    <rect width="480" height="216" fill="url(#b5s)"/><circle cx="80" cy="50" r="26" fill="#ff7a3c" opacity=".5"/>
+    <path d="M150 150 L240 60 L330 150 Z" fill="#3a1414"/><path d="M218 86 L240 60 L262 86 L252 104 L228 104 Z" fill="#ff5a2a" opacity=".9"/>
+    <circle cx="190" cy="40" r="2" fill="#ffb86a" opacity=".8"/><circle cx="300" cy="60" r="2.4" fill="#ff9a4a" opacity=".8"/><circle cx="360" cy="30" r="1.8" fill="#ffb86a" opacity=".7"/>
+    <rect y="150" width="480" height="66" fill="#241010"/><path d="M0 168 Q120 160 240 170 Q360 180 480 166" fill="none" stroke="#ff5a2a" stroke-width="3" opacity=".7"/>`,
+  ()=>`<defs><linearGradient id="b6s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2068"/><stop offset="1" stop-color="#190f30"/></linearGradient></defs>
+    <rect width="480" height="216" fill="url(#b6s)"/><circle cx="380" cy="50" r="30" fill="#ffb0c4" opacity=".55"/>
+    <g fill="#150b28"><rect x="120" y="84" width="240" height="70"/><rect x="120" y="70" width="20" height="84"/><rect x="220" y="60" width="40" height="94"/><rect x="340" y="70" width="20" height="84"/><path d="M120 70 L130 54 L140 70 Z"/><path d="M220 60 L240 40 L260 60 Z"/><path d="M340 70 L350 54 L360 70 Z"/></g>
+    <rect x="232" y="100" width="16" height="30" rx="8" fill="#ffd24a" opacity=".8"/>
+    <rect y="150" width="480" height="66" fill="#120a26"/>`,
+  ()=>`<defs><radialGradient id="b7s" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="#3a1d6e"/><stop offset=".6" stop-color="#1a0c3a"/><stop offset="1" stop-color="#070317"/></radialGradient></defs>
+    <rect width="480" height="216" fill="url(#b7s)"/>
+    <g fill="#fff"><circle cx="60" cy="40" r="1.6"/><circle cx="160" cy="24" r="1.3"/><circle cx="250" cy="50" r="1.8"/><circle cx="330" cy="30" r="1.4"/><circle cx="420" cy="58" r="1.6"/><circle cx="110" cy="90" r="1.2"/><circle cx="400" cy="110" r="1.3"/></g>
+    <ellipse cx="240" cy="108" rx="150" ry="60" fill="none" stroke="#9b6bff" stroke-width="2" opacity=".35"/>
+    <ellipse cx="240" cy="108" rx="90" ry="38" fill="none" stroke="#d24bff" stroke-width="2" opacity=".3"/>
+    <rect y="150" width="480" height="66" fill="#0c0622" opacity=".7"/>`,
+];
 
 /* 幼児モード：えと かんじの あわせっこ（まだ字が読めなくても 絵で あそべる） */
 const KIDS_DATA = [
@@ -1547,33 +1677,44 @@ const ACC = {
   horns:a=>`<path d="M35 35 Q24 24 29 13 Q37 21 41 34 Z" fill="${a.accent}"/><path d="M65 35 Q76 24 71 13 Q63 21 59 34 Z" fill="${a.accent}"/>`,
   halo:a=>`<ellipse cx="50" cy="18" rx="16" ry="5" fill="none" stroke="${a.accent}" stroke-width="3"/><path d="M50 28 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 Z" fill="#fde68a"/><circle cx="30" cy="30" r="1.6" fill="#fff"/><circle cx="70" cy="28" r="1.6" fill="#fff"/>`,
 };
+function shade(hex, pct){
+  const n=parseInt(hex.slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=pct/100;
+  r=Math.round(r+(pct<0?r*f:(255-r)*f)); g=Math.round(g+(pct<0?g*f:(255-g)*f)); b=Math.round(b+(pct<0?b*f:(255-b)*f));
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
 function avatarSVG(id, size){
   const a = AVATARS.find(x=>x.id===id) || AVATARS[0];
   const s = size||90;
   const back = ACC_BACK[a.acc] ? ACC_BACK[a.acc](a) : "";
   const top  = ACC[a.acc] ? ACC[a.acc](a) : "";
-  const body = `<ellipse cx="50" cy="61" rx="30" ry="31" fill="${a.c1}"/><ellipse cx="41" cy="50" rx="17" ry="15" fill="${a.c2}" opacity=".6"/><ellipse cx="37" cy="87" rx="9" ry="5" fill="${a.c1}"/><ellipse cx="63" cy="87" rx="9" ry="5" fill="${a.c1}"/>`;
+  const gid = "av_"+a.id;
+  const grad = `<radialGradient id="${gid}" cx="0.38" cy="0.3" r="0.85"><stop offset="0" stop-color="${shade(a.c2,18)}"/><stop offset="0.5" stop-color="${a.c1}"/><stop offset="1" stop-color="${shade(a.c1,-30)}"/></radialGradient>`;
+  const body = `<ellipse cx="50" cy="62.5" rx="31.5" ry="32.5" fill="${shade(a.c1,-38)}"/>`
+    + `<ellipse cx="50" cy="61" rx="30" ry="31" fill="url(#${gid})"/>`
+    + `<ellipse cx="40" cy="45" rx="15" ry="9.5" fill="#ffffff" opacity="0.4"/>`
+    + `<ellipse cx="37" cy="88" rx="9" ry="5" fill="${shade(a.c1,-22)}"/><ellipse cx="63" cy="88" rx="9" ry="5" fill="${shade(a.c1,-22)}"/>`;
   let eyes;
   if(a.acc==="alien") eyes=`<ellipse cx="40" cy="57" rx="6" ry="9" fill="#10241a"/><ellipse cx="60" cy="57" rx="6" ry="9" fill="#10241a"/><circle cx="42" cy="53" r="1.8" fill="#fff"/><circle cx="62" cy="53" r="1.8" fill="#fff"/>`;
   else if(a.acc==="robot") eyes=`<rect x="35" y="53" width="9" height="9" rx="2" fill="#0b3b5a"/><rect x="56" y="53" width="9" height="9" rx="2" fill="#0b3b5a"/><rect x="37" y="55" width="3" height="3" fill="#7dd3fc"/><rect x="58" y="55" width="3" height="3" fill="#7dd3fc"/>`;
   else eyes=`<circle cx="40" cy="57" r="6.5" fill="#fff"/><circle cx="60" cy="57" r="6.5" fill="#fff"/><circle cx="41" cy="58" r="3.2" fill="#23304d"/><circle cx="61" cy="58" r="3.2" fill="#23304d"/><circle cx="42.4" cy="56.4" r="1.2" fill="#fff"/><circle cx="62.4" cy="56.4" r="1.2" fill="#fff"/>`;
   const cheeks=`<circle cx="34" cy="67" r="4" fill="#ff8fb0" opacity=".5"/><circle cx="66" cy="67" r="4" fill="#ff8fb0" opacity=".5"/>`;
   const smile=`<path d="M44 69 Q50 74 56 69" stroke="#23304d" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
-  return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">${back}${body}${eyes}${cheeks}${smile}${top}</svg>`;
+  return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg"><defs>${grad}</defs>${back}${body}${eyes}${cheeks}${smile}${top}</svg>`;
 }
 function medallionHTML(id, cls){ const a=AVATARS.find(x=>x.id===id)||AVATARS[0]; return `<span class="medallion ${cls||""} rar-${a.rar}">${avatarSVG(id,52)}</span>`; }
 
 const SKILLS = [
-  { id:"punch",   name:"なぐる",           icon:"👊", cost:0,    power:2,  anim:"throw",  proj:"💢", burst:"💥", color:"#ffd27a" },
-  { id:"fire",    name:"ファイアボール",   icon:"🔥", cost:180,  power:3,  anim:"throw",  proj:"🔥", burst:"💥", color:"#ff7a3c" },
-  { id:"ice",     name:"アイスショット",   icon:"❄️", cost:300,  power:4,  anim:"throw",  proj:"❄️", burst:"🧊", color:"#7ec8ff" },
-  { id:"thunder", name:"サンダーボルト",   icon:"⚡", cost:480,  power:5,  anim:"strike", proj:"⚡", burst:"⚡", color:"#ffe14d" },
-  { id:"wind",    name:"カマイタチ",       icon:"🌀", cost:650,  power:6,  anim:"throw",  proj:"🌀", burst:"💨", color:"#a8e6cf" },
-  { id:"star",    name:"スターブラスト",   icon:"🌟", cost:850,  power:7,  anim:"throw",  proj:"🌟", burst:"✨", color:"#ffd6f5" },
-  { id:"meteor",  name:"メテオストライク", icon:"☄️", cost:1200, power:9,  anim:"strike", proj:"☄️", burst:"🔥", color:"#ff5a5a" },
-  { id:"dragon",  name:"ドラゴンブレス",   icon:"🐉", cost:1700, power:12, anim:"throw",  proj:"🐉", burst:"🔥", color:"#b06bff" },
-  { id:"holy",    name:"ホーリーレイ",     icon:"✨", cost:2600, power:16, anim:"strike", proj:"✨", burst:"🌟", color:"#fff3b0" },
-  { id:"galaxy",  name:"ギャラクシーノヴァ",icon:"🌌", cost:4200, power:22, anim:"throw",  proj:"🌠", burst:"💫", color:"#c4b5fd" },
+  { id:"punch",   name:"なぐる",           icon:"👊", cost:0,    power:2,  anim:"throw",  proj:"💢", burst:"💥", color:"#ffd27a", sfx:"phys" },
+  { id:"fire",    name:"ファイアボール",   icon:"🔥", cost:180,  power:3,  anim:"throw",  proj:"🔥", burst:"💥", color:"#ff7a3c", sfx:"fire" },
+  { id:"ice",     name:"アイスショット",   icon:"❄️", cost:300,  power:4,  anim:"throw",  proj:"❄️", burst:"🧊", color:"#7ec8ff", sfx:"ice" },
+  { id:"thunder", name:"サンダーボルト",   icon:"⚡", cost:480,  power:5,  anim:"strike", proj:"⚡", burst:"⚡", color:"#ffe14d", sfx:"thunder" },
+  { id:"wind",    name:"カマイタチ",       icon:"🌀", cost:650,  power:6,  anim:"throw",  proj:"🌀", burst:"💨", color:"#a8e6cf", sfx:"wind" },
+  { id:"star",    name:"スターブラスト",   icon:"🌟", cost:850,  power:7,  anim:"throw",  proj:"🌟", burst:"✨", color:"#ffd6f5", sfx:"star" },
+  { id:"meteor",  name:"メテオストライク", icon:"☄️", cost:1200, power:9,  anim:"strike", proj:"☄️", burst:"🔥", color:"#ff5a5a", sfx:"fire" },
+  { id:"dragon",  name:"ドラゴンブレス",   icon:"🐉", cost:1700, power:12, anim:"throw",  proj:"🐉", burst:"🔥", color:"#b06bff", sfx:"fire" },
+  { id:"holy",    name:"ホーリーレイ",     icon:"✨", cost:2600, power:16, anim:"strike", proj:"✨", burst:"🌟", color:"#fff3b0", sfx:"holy" },
+  { id:"galaxy",  name:"ギャラクシーノヴァ",icon:"🌌", cost:4200, power:22, anim:"throw",  proj:"🌠", burst:"💫", color:"#c4b5fd", sfx:"cosmic" },
 ];
 const SHOP_ITEMS = [
   { id:"hp",     name:"いのちのうつわ",       icon:"❤️", base:60,  growth:55,  max:20, desc:"さいだいHP+1" },
@@ -1705,8 +1846,11 @@ function loadStage(){
   state.enemyHp = state.enemyMaxHp;
   state.enemyAtk = Math.max(1, Math.round(m.atk * (1+(save.clears||0)*0.18) * (1+(state.grade-1)*0.08)));
   state.poison=0;
-  $("enemyName").textContent=m.name; $("enemySprite").textContent=m.sprite;
-  $("enemySprite").classList.add("pop"); setTimeout(()=>$("enemySprite").classList.remove("pop"),400);
+  $("enemyName").textContent=m.name;
+  $("fieldBg").innerHTML = stageBg(state.stage);
+  const es=$("enemySprite"); es.classList.remove("vanish"); es.style.opacity="1";
+  es.innerHTML = (m.art && MONSTER_ART[m.art]) ? monsterSVG(m.art) : `<span style="font-size:78px">${m.sprite}</span>`;
+  es.classList.add("pop"); setTimeout(()=>es.classList.remove("pop"),400);
   $("stageBadge").textContent=`ステージ ${state.stage+1} / ${state.stages.length}`;
   updateBars(); updateGauge(); updateCombo();
   setMessage(m.secret?`⚠️ さいきょうの ${m.name} が あらわれた！`:`あ！ やせいの ${m.name} が あらわれた！`);
@@ -2052,8 +2196,25 @@ const SFX = (() => {
     defeat:()=>{ tone(660,0,0.1,"sine",0.15,330); tone(440,0.1,0.13,"sine",0.15,170); noise(0.02,0.3,0.11,1300); },
     win:()=>{ [523,659,784,1047].forEach((f,i)=>tone(f,i*0.12,0.2,"triangle",0.17)); tone(1568,0.48,0.45,"triangle",0.14); },
     lose:()=>{ [392,330,262,196].forEach((f,i)=>tone(f,i*0.16,0.32,"sine",0.15)); },
-    skill:()=>{ tone(280,0,0.26,"sawtooth",0.12,1500); noise(0.05,0.18,0.14,3200,"highpass"); },
-    skillHit:()=>{ noise(0,0.3,0.38,1400); tone(160,0,0.3,"sawtooth",0.3,45); tone(1000,0.05,0.22,"square",0.11,1700); },
+    skill:(type)=>{ switch(type){
+      case "fire":    tone(110,0,0.32,"sawtooth",0.14,440); noise(0.04,0.34,0.2,900,"lowpass"); break;
+      case "ice":     tone(1400,0,0.18,"triangle",0.12,2300); tone(1900,0.07,0.22,"sine",0.09,2700); noise(0,0.12,0.07,4200,"highpass"); break;
+      case "thunder": noise(0,0.05,0.22,3200,"highpass"); noise(0.09,0.05,0.2,3200,"highpass"); noise(0.18,0.06,0.18,3000,"highpass"); tone(70,0,0.32,"sawtooth",0.1,38); break;
+      case "wind":    noise(0,0.32,0.16,1200,"bandpass"); tone(620,0,0.3,"sine",0.07,1700); break;
+      case "star":    [880,1175,1568,2093].forEach((f,i)=>tone(f,i*0.05,0.13,"triangle",0.1)); break;
+      case "holy":    tone(784,0,0.34,"sine",0.1); tone(988,0,0.34,"sine",0.09); tone(1319,0.06,0.32,"sine",0.08); noise(0.02,0.2,0.05,5000,"highpass"); break;
+      case "cosmic":  tone(55,0,0.42,"sine",0.13,420); [1568,2093,2637].forEach((f,i)=>tone(f,0.08+i*0.05,0.16,"triangle",0.09)); break;
+      default:        noise(0,0.12,0.13,2200,"highpass"); tone(300,0,0.16,"sawtooth",0.1,900);
+    } },
+    skillHit:(type)=>{ switch(type){
+      case "fire":    tone(150,0,0.34,"sawtooth",0.32,42); tone(80,0,0.32,"sine",0.22,38); noise(0,0.34,0.42,1300,"lowpass"); break;
+      case "ice":     tone(2700,0,0.18,"triangle",0.18,1700); tone(1900,0.05,0.2,"sine",0.12,1100); noise(0,0.18,0.24,5200,"highpass"); break;
+      case "thunder": noise(0,0.26,0.42,4200,"highpass"); tone(2100,0,0.22,"sawtooth",0.2,180); tone(70,0,0.3,"sine",0.2,36); break;
+      case "wind":    noise(0,0.22,0.32,2000,"bandpass"); tone(1300,0,0.16,"sawtooth",0.12,300); break;
+      case "star": case "holy": [1319,1760,2093,2637].forEach((f,i)=>tone(f,i*0.035,0.32,"triangle",0.14)); noise(0,0.1,0.1,6000,"highpass"); break;
+      case "cosmic":  tone(58,0,0.44,"sine",0.26,30); noise(0,0.38,0.42,1500,"lowpass"); [1568,2093,2637].forEach((f,i)=>tone(f,0.06+i*0.04,0.34,"triangle",0.12)); break;
+      default:        noise(0,0.3,0.38,1400,"lowpass"); tone(160,0,0.3,"sawtooth",0.3,45); tone(1000,0.05,0.22,"square",0.11,1700);
+    } },
   };
 })();
 document.addEventListener("pointerdown",()=>SFX.resume(),{once:true});
@@ -2108,7 +2269,7 @@ function hurtFlash(){ const d=document.createElement("div"); d.className="hurt-f
 function critFlash(){ const d=document.createElement("div"); d.className="crit-flash"; $("field").appendChild(d); setTimeout(()=>d.remove(),360); }
 function playSkillAnim(sk){
   const field=$("field");
-  SFX.skill();
+  SFX.skill(sk.sfx);
   // チャージのひかり（プレイヤー足元）
   const ch=document.createElement("div"); ch.className="skill-charge"; ch.style.setProperty("--cc",sk.color); field.appendChild(ch); setTimeout(()=>ch.remove(),460);
   // 画面全体のいろフラッシュ
@@ -2121,7 +2282,7 @@ function playSkillAnim(sk){
     const b=document.createElement("div"); b.className="skill-burst"; b.textContent=sk.burst; field.appendChild(b); setTimeout(()=>b.remove(),600);
     bigFlash(); shockwave(c.x,c.y,true); shockwave(c.x,c.y);
     spawnParticles(c.x,c.y,{ count:30, colors:["#fff","#ffd166",sk.color], spread:130, size:10, rise:10 });
-    shakeField(true); SFX.skillHit();
+    shakeField(true); SFX.skillHit(sk.sfx);
     const es=$("enemySprite"); es.classList.add("shake"); setTimeout(()=>es.classList.remove("shake"),450);
   },520);
 }
@@ -2135,7 +2296,7 @@ function stageClear(){
   spawnParticles(ec.x,ec.y,{ count:26, colors:["#fff","#ffd166","#a855f7","#60a5fa"], spread:120, size:9, rise:14, dur:800 });
   shockwave(ec.x,ec.y,true); SFX.defeat(); setTimeout(()=>SFX.coin(),200);
   setMessage(`${m.name} を たおした！ 🎊（🪙+${bonus}）`);
-  $("enemySprite").textContent="💨"; $("quizArea").style.display="none"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none"; $("timerWrap").style.visibility="hidden";
+  $("enemySprite").classList.add("vanish"); $("quizArea").style.display="none"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none"; $("timerWrap").style.visibility="hidden";
   state.combo=0; updateCombo(); state.stage++;
   if(state.stage>=state.stages.length){ setTimeout(gameClear,1100); }
   else { state.playerHp=Math.min(state.playerMaxHp, state.playerHp+2); updateBars(); setTimeout(loadStage,1300); }
