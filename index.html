@@ -255,6 +255,22 @@
   .modal-btns { display:flex; gap:10px; }
   .modal-btns .btn-primary { padding:11px; font-size:15px; }
 
+  /* ===== 算数キーパッド ===== */
+  .mp-display { background:#0f1226; color:#fff; border-radius:12px; padding:12px 16px; font-size:30px; font-weight:800; text-align:right; min-height:30px; margin-bottom:10px; letter-spacing:1px; box-shadow:inset 0 2px 6px rgba(0,0,0,.4); }
+  .mp-keys { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .mp-keys button { border:1.5px solid #e7e8f0; background:#fff; border-radius:12px; padding:15px 0; font-size:22px; font-weight:800; color:var(--ink); cursor:pointer; box-shadow:0 3px 8px rgba(8,10,30,.08); transition:.1s; }
+  .mp-keys button:active { transform:scale(.94); background:#eef0f6; }
+  .mp-keys button.mp-back { color:#ef4444; }
+  #mpSubmit { background:var(--grad-primary); box-shadow:0 8px 18px rgba(124,58,237,.3); }
+  #mpSubmit:disabled { opacity:.5; }
+  .quiz-main.word { font-size:18px; line-height:1.6; font-weight:700; padding:4px 6px; letter-spacing:0; }
+  .quiz-main.zukei svg { width:180px; height:150px; }
+  .review-box { text-align:left; background:#fff7ec; border:1px solid #ffe1b8; border-radius:12px; padding:10px 12px; margin-top:12px; }
+  .review-h { font-size:12.5px; font-weight:800; color:#b45309; margin-bottom:6px; }
+  .rv-item { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0; border-top:1px dashed #f0d6a8; }
+  .rv-item:first-of-type { border-top:none; }
+  .rv-item b { color:#7c3aed; }
+
   /* ===== バトル演出（パーティクル・斬撃・衝撃波・閃光・画面シェイク） ===== */
   .field.shaking { animation:fieldShake .38s ease; }
   .field.shaking-lg { animation:fieldShakeLg .55s ease; }
@@ -293,7 +309,7 @@
 </head>
 <body>
 <div class="game">
-  <div class="brand"><h1>かんじクエスト</h1><small>KANJI QUEST</small></div>
+  <div class="brand"><h1>まなびクエスト</h1><small>MANABI QUEST</small></div>
 
   <!-- ===== TITLE ===== -->
   <div id="screen-title" class="screen active">
@@ -305,14 +321,30 @@
       </span>
     </div>
     <div class="card menu-card">
-      <p>漢字の問題にこたえて<br>モンスターをやっつけよう！</p>
+      <p>もんだいに こたえて<br>モンスターをやっつけよう！</p>
       <div id="titleProgress" style="font-size:12px; color:#6b7280; margin-bottom:8px; font-weight:700;"></div>
+      <div class="section-title">かもくを えらぶ</div>
+      <div class="seg" id="subjectSeg">
+        <button class="sel" data-subject="kanji">📖 かんじ</button>
+        <button data-subject="math">🔢 さんすう</button>
+      </div>
       <div class="section-title">モードをえらぶ</div>
       <div class="seg" id="modeSeg">
         <button id="kidsModeBtn" data-mode="kids" style="display:none;">👶ようじ<small>えあわせ</small><span class="coinrate">🪙×0.7</span></button>
         <button class="sel" data-mode="easy">やさしい<small>よみ・4たく</small><span class="coinrate">🪙×1</span></button>
         <button data-mode="hard">むずかしい<small>音訓・画数</small><span class="coinrate">🪙🪙×1.6</span></button>
         <button data-mode="write">✏️てがき<small>書いて答え</small><span class="coinrate">🪙🪙×1.8</span></button>
+      </div>
+      <div class="seg" id="modeSegMath" style="display:none;">
+        <button class="sel" data-mode="easy">やさしい<small>4たく</small><span class="coinrate">🪙×1</span></button>
+        <button data-mode="hard">むずかしい<small>4たく・難</small><span class="coinrate">🪙🪙×1.6</span></button>
+        <button data-mode="keypad">🔢かく<small>キーパッド</small><span class="coinrate">🪙🪙×1.8</span></button>
+      </div>
+      <div class="seg" id="topicSegMath" style="display:none; margin-top:6px;">
+        <button class="sel" data-topic="calc">けいさん</button>
+        <button data-topic="kuku">⚡九九</button>
+        <button data-topic="word">📝文章</button>
+        <button data-topic="zukei">🕐ずけい</button>
       </div>
       <div style="font-size:10.5px; color:#9aa0ad; text-align:center; margin-top:6px;">🪙はモードのごほうび倍率。学年・ステージ・周回が上がるほど もっと もらえる！</div>
       <div id="gradeWrap">
@@ -384,6 +416,11 @@
             </div>
             <div class="recog-info" id="recogInfo"></div>
           </div>
+        </div>
+        <div id="mathPad" style="display:none;">
+          <div class="mp-display" id="mpDisplay">0</div>
+          <div class="mp-keys" id="mpKeys"></div>
+          <button class="wc-submit" id="mpSubmit" style="width:100%; border:none; border-radius:13px; padding:13px; font-weight:800; font-size:15px; color:#fff;">こたえる 🔢</button>
         </div>
       </div>
       <button class="btn-primary btn-ghost" id="afterOrderBtn" style="display:none;">✍️ 書き順をみる</button>
@@ -1760,7 +1797,7 @@ function baseAtk(){ return 1 + (save.items.atk||0) + getAvatar().atk; }
 function coinPerHit(){
   const base = 5;
   const gradeMul = state.mode==="kids" ? 1 : (1 + (state.grade-1)*0.4);   // 1.0〜3.0
-  const modeMul  = state.mode==="hard"?1.6 : state.mode==="write"?1.8 : state.mode==="kids"?0.7 : 1;
+  const modeMul  = state.mode==="hard"?1.6 : (state.mode==="write"||state.mode==="keypad")?1.8 : state.mode==="kids"?0.7 : 1;
   const stageMul = 1 + state.stage*0.2;                                   // 後半ほど増える
   const clearMul = 1 + (save.clears||0)*0.3;                              // 周回ごとに増える
   const luckMul  = 1 + 0.25*(save.items.luck||0);                         // こううんコイン：1レベルで+25%（最大×3）
@@ -1772,10 +1809,10 @@ function monsterScale(){ return (1 + (state.grade-1)*0.16) * (1 + (save.clears||
 
 /* ===== 状態 ===== */
 const state = {
-  grade:1, mode:"easy", stage:0, stages:[],
+  grade:1, mode:"easy", subject:"kanji", mathTopic:"calc", stage:0, stages:[],
   playerMaxHp:6, playerHp:6, atk:1, gauge:0,
   enemyMaxHp:0, enemyHp:0, enemyAtk:1,
-  pool:[], poolIdx:0, curEntry:null, curAnswer:null,
+  pool:[], poolIdx:0, curEntry:null, curAnswer:null, curQ:"", missed:[],
   correct:0, total:0, earned:0, combo:0, maxCombo:0, poison:0,
   locked:false, skillBusy:false, timerId:null, timeLeft:0, timeDur:10,
 };
@@ -1793,12 +1830,41 @@ function buildGradeButtons(){
   for(const g of [1,2,3,4,5,6]){
     const n=(KANJI_DATA[g]||[]).length;
     const btn=document.createElement("button");
-    btn.className="grade-btn"; btn.innerHTML=`小学${GRADE_LABELS[g][0]}<small>${n}字</small>`;
+    btn.className="grade-btn"; btn.dataset.kanji=n+"字"; btn.innerHTML=`小学${GRADE_LABELS[g][0]}<small class="gb-sub">${n}字</small>`;
     btn.onclick=()=>{ SFX.select(); startGame(g); }; wrap.appendChild(btn);
   }
 }
+const MATH_TOPIC = { 1:"たし算ひき算", 2:"九九・たし算", 3:"わり算", 4:"小数・かけ算", 5:"小数・わりあい", 6:"分数" };
+function updateGradeLabels(){
+  const math = state.subject==="math";
+  document.querySelectorAll("#gradeBtns .grade-btn").forEach((b,i)=>{
+    const sub=b.querySelector(".gb-sub"); if(sub) sub.textContent = math ? MATH_TOPIC[i+1] : b.dataset.kanji;
+  });
+}
 document.querySelectorAll("#modeSeg button").forEach(b=>{ b.onclick=()=>{ document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; const kids=state.mode==="kids"; $("gradeWrap").style.display=kids?"none":"block"; $("kidsStart").style.display=kids?"block":"none"; }; });
 $("kidsStartBtn").onclick = ()=>{ SFX.select(); state.mode="kids"; startGame(1); };
+
+/* ===== 科目スイッチ（かんじ／さんすう）===== */
+function setSubject(sub){
+  state.subject=sub;
+  document.querySelectorAll("#subjectSeg button").forEach(x=>x.classList.toggle("sel",x.dataset.subject===sub));
+  const math=sub==="math";
+  $("modeSeg").style.display=math?"none":"flex";
+  $("modeSegMath").style.display=math?"flex":"none";
+  $("topicSegMath").style.display=math?"flex":"none";
+  const seg=math?"#modeSegMath":"#modeSeg";
+  document.querySelectorAll(seg+" button").forEach(x=>x.classList.remove("sel"));
+  const easyBtn=document.querySelector(seg+' button[data-mode="easy"]'); if(easyBtn) easyBtn.classList.add("sel");
+  state.mode="easy";
+  document.querySelectorAll("#topicSegMath button").forEach(x=>x.classList.toggle("sel",x.dataset.topic==="calc"));
+  state.mathTopic="calc";
+  $("gradeWrap").style.display="block"; $("kidsStart").style.display="none";
+  updateGradeLabels();
+}
+document.querySelectorAll("#subjectSeg button").forEach(b=>{ b.onclick=()=>{ SFX.select(); setSubject(b.dataset.subject); }; });
+document.querySelectorAll("#modeSegMath button").forEach(b=>{ b.onclick=()=>{ SFX.select(); document.querySelectorAll("#modeSegMath button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; }; });
+document.querySelectorAll("#topicSegMath button").forEach(b=>{ b.onclick=()=>{ SFX.select(); document.querySelectorAll("#topicSegMath button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mathTopic=b.dataset.topic; }; });
+$("mpSubmit").onclick = submitMath;
 
 /* ===== 管理者ゲート（幼児モード解禁・パスワード3917／sessionStorageで保持） ===== */
 const ADMIN_PASS = "3917";
@@ -1830,9 +1896,9 @@ function startGame(grade){
   if(save.bossDefeated) state.stages.push(SECRET_BOSS);   // 解禁後は 裏ボスが 追加
   state.playerMaxHp=baseMaxHp(); state.playerHp=state.playerMaxHp;
   state.atk=baseAtk(); state.gauge=0; state.skillBusy=false;
-  state.pool=shuffle(state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade]); state.poolIdx=0;
-  state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0;
-  state.timeDur = (state.mode==="easy"?14:(state.mode==="hard"?9:0));
+  state.pool=shuffle(state.subject==="math"?[1]:(state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade])); state.poolIdx=0;
+  state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0; state.missed=[];
+  state.timeDur = (state.mode==="keypad"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
   $("playerSprite").innerHTML=avatarSVG(save.equipped,90);
   $("playerLvl").textContent="(攻"+state.atk+")";
   show("battle"); loadStage();
@@ -1930,18 +1996,19 @@ function nextQuestion(){
   state.locked=false;
   const entry=nextEntry(); state.curEntry=entry;
   $("quizArea").style.display="block"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none";
+  if(state.subject==="math"){ state.curEntry=null; renderMathQuestion(); return; }
   if(state.mode==="kids"){ renderKidsQuestion(entry); return; }
   if(state.mode==="write"){ renderWriteQuestion(entry); return; }
-  const q=makeQuestion(entry); state.curAnswer=q.answer;
+  const q=makeQuestion(entry); state.curAnswer=q.answer; state.curQ=q.prompt;
   setMessage("クイズ！ こたえをえらんでね");
   $("qtag").textContent=q.tag; $("quizMain").className="quiz-main "+q.mainClass; $("quizMain").textContent=q.prompt; $("quizHint").textContent=q.hint;
-  $("writeArea").style.display="none";
+  $("writeArea").style.display="none"; $("mathPad").style.display="none";
   const box=$("choices"); box.style.display="grid"; box.innerHTML="";
   q.options.forEach(opt=>{ const b=document.createElement("button"); b.className="choice"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===q.answer,q.answer); box.appendChild(b); });
   startTimer();
 }
 function renderWriteQuestion(entry){
-  state.curAnswer=entry.k;
+  state.curAnswer=entry.k; state.curQ="よみ:"+(entry.er||entry.kun||entry.on||entry.k);
   $("qtag").textContent="✏️てがき"; $("quizMain").className="quiz-main reading";
   const blanked = entry.ew ? entry.ew.split(entry.k).join("▢") : "";
   if(entry.ew && entry.er && blanked!==entry.ew){
@@ -1954,14 +2021,14 @@ function renderWriteQuestion(entry){
     $("quizMain").textContent = reading;
     $("quizHint").textContent = "かけたら「こたえる」を おしてね";
   }
-  $("choices").style.display="none"; $("writeArea").style.display="block";
+  $("choices").style.display="none"; $("writeArea").style.display="block"; $("mathPad").style.display="none";
   $("timerWrap").style.visibility="hidden";
   $("recogInfo").innerHTML=""; $("submitWriteBtn").disabled=false;
   clearPad(); resizePad();
 }
 /* 幼児モード：絵を見て かんじを えらぶ（3たく・大きなボタン） */
 function renderKidsQuestion(entry){
-  state.curAnswer=entry.k;
+  state.curAnswer=entry.k; state.curQ=entry.e;
   $("qtag").textContent="えあわせ"; $("quizMain").className="quiz-main";
   $("quizMain").textContent=entry.e;
   $("quizHint").textContent="おなじ なかまの かんじは どれ？";
@@ -1971,7 +2038,198 @@ function renderKidsQuestion(entry){
   const opts=shuffle([entry.k,...others]);
   const box=$("choices"); box.style.display="grid"; box.innerHTML="";
   opts.forEach(opt=>{ const b=document.createElement("button"); b.className="choice kids"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===entry.k,entry.k); box.appendChild(b); });
-  $("timerWrap").style.visibility="hidden";
+  $("timerWrap").style.visibility="hidden"; $("mathPad").style.display="none";
+}
+
+/* ===== 算数モード（Phase 1：計算）===== */
+function gcd(a,b){ return b?gcd(b,a%b):a; }
+function fracStr(n,d){ const g=gcd(Math.abs(n),Math.abs(d))||1; n/=g; d/=g; return d===1?String(n):n+"/"+d; }
+function genMath(grade, hard, numericOnly){
+  const ri=randInt;
+  let types = {
+    1:["add","sub"], 2:["add2","sub2","mul"], 3:["mul","div","add3"],
+    4:["mul2","div","decAddSub"], 5:["decMul","decDiv","percent"],
+    6:["fracAdd","fracMul","percent"]
+  }[grade] || ["add"];
+  if(numericOnly) types = types.filter(t=>t[0]!=="f");
+  if(!types.length) types=["mul2"];
+  const t = types[Math.floor(Math.random()*types.length)];
+  let a,b,text,ans;
+  switch(t){
+    case "add": a=ri(1,hard?12:9); b=ri(1,hard?9:9); if(a+b>20)b=20-a; if(b<1){b=1;} text=`${a} + ${b}`; ans=a+b; break;
+    case "sub": a=ri(hard?13:8,20); b=ri(1,a); text=`${a} − ${b}`; ans=a-b; break;
+    case "add2": a=ri(10,hard?89:49); b=ri(10,hard?89:39); text=`${a} + ${b}`; ans=a+b; break;
+    case "sub2": a=ri(30,99); b=ri(10,a); text=`${a} − ${b}`; ans=a-b; break;
+    case "mul": a=ri(2,9); b=ri(2,9); text=`${a} × ${b}`; ans=a*b; break;
+    case "div": b=ri(2,9); ans=ri(2,9); a=b*ans; text=`${a} ÷ ${b}`; break;
+    case "add3": a=ri(100,hard?899:499); b=ri(50,hard?599:299); text=`${a} + ${b}`; ans=a+b; break;
+    case "mul2": a=ri(hard?13:11,hard?39:29); b=ri(2,hard?19:9); text=`${a} × ${b}`; ans=a*b; break;
+    case "decAddSub": { const x=ri(11,hard?99:49)/10, y=ri(11,hard?80:39)/10;
+      if(Math.random()<0.5){ text=`${x} + ${y}`; ans=Math.round((x+y)*10)/10; }
+      else { const hi=Math.max(x,y),lo=Math.min(x,y); text=`${hi} − ${lo}`; ans=Math.round((hi-lo)*10)/10; } break; }
+    case "decMul": { const x=ri(11,hard?49:25)/10, n=ri(2,9); text=`${x} × ${n}`; ans=Math.round(x*n*10)/10; break; }
+    case "decDiv": { const n=ri(2,9), q=ri(11,hard?39:25)/10; const dv=Math.round(q*n*10)/10; text=`${dv} ÷ ${n}`; ans=Math.round((dv/n)*10)/10; break; }
+    case "percent": { const o=[[10,10],[20,5],[25,4],[50,2]][ri(0,3)]; const k=ri(2,hard?12:8); text=`${k*o[1]} の ${o[0]}%`; ans=k; break; }
+    case "fracAdd": { const d=ri(3,hard?9:6); const n1=ri(1,d-1), n2=ri(1,d-1);
+      if(Math.random()<0.5){ text=`${n1}/${d} + ${n2}/${d}`; ans=fracStr(n1+n2,d); }
+      else { const hi=Math.max(n1,n2),lo=Math.min(n1,n2); text=`${hi}/${d} − ${lo}/${d}`; ans=fracStr(hi-lo,d); } break; }
+    case "fracMul": { const b1=ri(2,hard?7:5), b2=ri(2,hard?7:5); const n1=ri(1,b1-1), n2=ri(1,b2-1); text=`${n1}/${b1} × ${n2}/${b2}`; ans=fracStr(n1*n2,b1*b2); break; }
+  }
+  return { text, ans:String(ans) };
+}
+function mathChoices(ansStr){
+  if(ansStr.includes("/")){
+    const [n,d]=ansStr.split("/").map(Number); const set=new Set([ansStr]);
+    for(const v of shuffle([[n+1,d],[Math.max(1,n-1),d],[n,d+1],[n+1,d+1],[n,Math.max(2,d-1)]])){
+      if(set.size>=4) break; const s=fracStr(v[0],v[1]); if(s!==ansStr) set.add(s);
+    }
+    let k=2; while(set.size<4){ set.add(fracStr(n+k,d+1)); k++; if(k>9)break; }
+    while(set.size<4) set.add((n)+"/"+(d+set.size));
+    return shuffle([...set]);
+  }
+  const isDec=ansStr.includes("."); const ans=parseFloat(ansStr); const set=new Set([ansStr]);
+  const fmt=v=>{ v=Math.round(v*(isDec?10:1))/(isDec?10:1); return String(v); };
+  for(const dd of shuffle(isDec?[0.1,-0.1,0.2,-0.2,1,-1,0.3]:[1,-1,2,-2,10,-10,3,-3])){
+    if(set.size>=4) break; const v=ans+dd; if(v>=0) set.add(fmt(v));
+  }
+  let e=4; while(set.size<4){ const v=ans+e; if(v>=0) set.add(fmt(v)); e++; if(e>40)break; }
+  return shuffle([...set]);
+}
+/* 九九スピード */
+function genKuku(hard){ const a=randInt(2,9), b=randInt(2,9); return { text:`${a} × ${b}`, ans:String(a*b) }; }
+/* 文章題（テンプレ自動生成） */
+function genWord(grade, hard){
+  const ri=randInt; let text, ans;
+  if(grade<=2){
+    const big = grade===2;
+    switch(ri(0,2)){
+      case 0: { const a=big?ri(12,40):ri(2,9), b=big?ri(8,30):ri(2,9); text=`りんごが ${a}こ あります。${b}こ もらうと ぜんぶで なんこ？`; ans=a+b; break; }
+      case 1: { const a=big?ri(20,60):ri(6,9), b=ri(1,big?15:a-1); text=`あめが ${a}こ あります。${b}こ たべました。のこりは なんこ？`; ans=a-b; break; }
+      default:{ const a=big?ri(10,30):ri(2,8), b=big?ri(6,20):ri(2,8); text=`こうえんに ${a}人 いました。あとから ${b}人 きました。みんなで なん人？`; ans=a+b; }
+    }
+  } else if(grade<=4){
+    switch(ri(0,2)){
+      case 0: { const a=ri(2,hard?9:6), b=ri(2,9); text=`1ふくろに ${b}こ 入った クッキーが ${a}ふくろ あります。ぜんぶで なんこ？`; ans=a*b; break; }
+      case 1: { const b=ri(2,6), q=ri(2,8), a=b*q; text=`${a}この あめを ${b}人で 同じ数ずつ わけます。1人ぶんは なんこ？`; ans=q; break; }
+      default:{ const b=ri(2,9)*10, a=ri(2,8); text=`1こ ${b}円の おかしを ${a}こ かいました。ぜんぶで なん円？`; ans=a*b; }
+    }
+  } else {
+    switch(ri(0,2)){
+      case 0: { const v=ri(3,8)*10, t=ri(2,hard?6:4); text=`じそく ${v}kmで ${t}時間 すすむと、なんkm すすむ？`; ans=v*t; break; }
+      case 1: { const o=[[10,10],[20,5],[25,4],[50,2]][ri(0,3)]; const k=ri(2,hard?12:8); text=`${k*o[1]}円の ${o[0]}%は なん円？`; ans=k; break; }
+      default:{ const t=ri(2,5), v=ri(2,6)*10, d=v*t; text=`${d}kmの 道のりを ${t}時間で すすみました。じそく なんkm？`; ans=v; }
+    }
+  }
+  return { text, ans:String(ans), q:text };
+}
+/* 時計・図形（SVG） */
+function hand(R,deg){ const r=deg*Math.PI/180; return [(50+R*Math.sin(r)).toFixed(1), (50-R*Math.cos(r)).toFixed(1)]; }
+function clockSVG(h,m){
+  let ticks=""; for(let i=0;i<12;i++){ const [x1,y1]=hand(45,i*30),[x2,y2]=hand(40,i*30); ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#334155" stroke-width="2"/>`; }
+  const [hx,hy]=hand(22,(h%12)*30+m*0.5), [mx,my]=hand(33,m*6);
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="47" fill="#fff" stroke="#334155" stroke-width="3"/>${ticks}<line x1="50" y1="50" x2="${hx}" y2="${hy}" stroke="#1f2438" stroke-width="4.5" stroke-linecap="round"/><line x1="50" y1="50" x2="${mx}" y2="${my}" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="3.4" fill="#1f2438"/></svg>`;
+}
+function fmtTime(h,m){ return m===0 ? `${h}じ` : `${h}じ${m}ふん`; }
+function svgZ(inner){ return `<svg viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
+function tL(x,y,txt,anchor){ return `<text x="${x}" y="${y}" font-size="14" text-anchor="${anchor||'middle'}" fill="#1f2438" font-weight="bold">${txt}</text>`; }
+function nearNum(n,lo,hi){ const set=new Set([String(n)]); for(const v of shuffle([n-1,n+1,n-2,n+2,n-3,n+3,lo,hi])){ if(set.size>=4)break; if(v>=lo) set.add(String(v)); } return shuffle([...set]); }
+/* --- 1〜2年 --- */
+function zClock(grade){ const ri=randInt; const h=ri(1,12), ml=grade===1?[0,30]:[0,15,30,45]; const m=ml[ri(0,ml.length-1)];
+  const c=fmtTime(h,m); const set=new Set([c]); let g=0;
+  while(set.size<4&&g++<40){ const hh=((h-1+ri(-2,2)+12)%12)+1; const mm=ml[ri(0,ml.length-1)]; const s=fmtTime(hh,mm); if(s!==c) set.add(s); }
+  return { svg:clockSVG(h,m), ans:c, options:shuffle([...set]), hint:"なんじ なんぷん？", q:"とけい("+c+")" }; }
+function zShapeName(){ const sh=[
+    {n:"まる", s:`<circle cx="90" cy="60" r="38" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>`},
+    {n:"さんかく", s:`<polygon points="90,22 128,96 52,96" fill="#ffe1b8" stroke="#f97316" stroke-width="3"/>`},
+    {n:"しかく", s:`<rect x="56" y="26" width="68" height="68" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/>`},
+    {n:"ながしかく", s:`<rect x="40" y="40" width="100" height="46" fill="#f5d0ec" stroke="#c026d3" stroke-width="3"/>`} ];
+  const p=sh[randInt(0,3)]; return { svg:svgZ(p.s), ans:p.n, options:shuffle(sh.map(x=>x.n)), hint:"これは どんな かたち？", q:"かたち("+p.n+")" }; }
+function zSides(){ const ps=[{n:3,p:"90,24 130,96 50,96"},{n:4,p:"54,30 126,30 126,98 54,98"},{n:5,p:"90,22 132,54 116,100 64,100 48,54"},{n:6,p:"66,26 114,26 138,68 114,110 66,110 42,68"}];
+  const x=ps[randInt(0,3)]; return { svg:svgZ(`<polygon points="${x.p}" fill="#e9d5ff" stroke="#7c3aed" stroke-width="3"/>`), ans:String(x.n), options:nearNum(x.n,3,8), hint:"かどは いくつ？", q:"かどの数("+x.n+")" }; }
+/* --- 3〜4年 --- */
+function zRectArea(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=w*h; const W=120,H=80,bx=30,by=16;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(bx+W/2,by+H+20,"よこ "+w+"cm")}${tL(bx-6,by+H/2+5,"たて"+h,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"長方形の めんせき（たて×よこ）", q:`長方形 ${w}×${h}` }; }
+function zSquareArea(hard){ const ri=randInt; const s=ri(3,hard?12:8); const a=s*s; const S=84,bx=48,by=14;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${S}" height="${S}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/>${tL(90,by+S+20,"1ぺん "+s+"cm")}`), ans:String(a), options:mathChoices(String(a)), hint:"正方形の めんせき（1ぺん×1ぺん）", q:`正方形 ${s}` }; }
+function zPerimeter(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=(w+h)*2; const W=120,H=78,bx=30,by=18;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#fff3c4" stroke="#ca8a04" stroke-width="3"/>${tL(bx+W/2,by+H+20,"よこ "+w+"cm")}${tL(bx-6,by+H/2+5,"たて"+h,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"まわりの長さ（(たて+よこ)×2）", q:`まわり ${w},${h}` }; }
+function zCircleRD(){ const r=randInt(2,9);
+  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="90" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="60" r="3" fill="#dc2626"/>${tL(108,52,"はんけい"+r)}`), ans:String(r*2), options:mathChoices(String(r*2)), hint:"ちょっけいは？（はんけい×2）", q:`円 はんけい${r}` }; }
+function zAngle(){ const A=[30,45,60,90,120,135]; const d=A[randInt(0,A.length-1)]; const rad=d*Math.PI/180; const L=86,R=24;
+  const x2=(40+L*Math.cos(rad)).toFixed(1), y2=(118-L*Math.sin(rad)).toFixed(1); const ax=(40+R*Math.cos(rad)).toFixed(1), ay=(118-R*Math.sin(rad)).toFixed(1);
+  return { svg:svgZ(`<line x1="40" y1="118" x2="150" y2="118" stroke="#1f2438" stroke-width="3"/><line x1="40" y1="118" x2="${x2}" y2="${y2}" stroke="#1f2438" stroke-width="3"/><path d="M ${40+R} 118 A ${R} ${R} 0 0 0 ${ax} ${ay}" fill="none" stroke="#ef4444" stroke-width="2.5"/>`), ans:String(d), options:(()=>{const s=new Set([String(d)]);for(const v of shuffle(A)){if(s.size>=4)break;if(v!==d)s.add(String(v));}return shuffle([...s]);})(), hint:"この かくどは なんど？", q:`角度 ${d}°` }; }
+/* --- 5〜6年 --- */
+function zTriArea(hard){ const ri=randInt; let base=ri(4,hard?14:10), height=ri(2,hard?12:8); if((base*height)%2) base++; const a=base*height/2; const W=130,H=84,bx=25,by=14;
+  return { svg:svgZ(`<polygon points="${bx},${by+H} ${bx+W},${by+H} ${bx+W*0.42},${by}" fill="#ffe1b8" stroke="#f97316" stroke-width="3"/><line x1="${bx+W*0.42}" y1="${by}" x2="${bx+W*0.42}" y2="${by+H}" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,by+H+20,"そこへん "+base+"cm")}${tL(bx+W*0.42+5,by+H/2,"たか"+height,'start')}`), ans:String(a), options:mathChoices(String(a)), hint:"三角形の めんせき（そこ×たか÷2）", q:`三角形 ${base},${height}` }; }
+function zParallel(hard){ const ri=randInt; const base=ri(4,hard?12:9), height=ri(3,hard?9:6); const a=base*height; const W=104,H=68,bx=30,by=18,sk=26;
+  return { svg:svgZ(`<polygon points="${bx+sk},${by} ${bx+sk+W},${by} ${bx+W},${by+H} ${bx},${by+H}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/><line x1="${bx+sk}" y1="${by}" x2="${bx+sk}" y2="${by+H}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(bx+W/2+sk/2,by+H+20,"そこへん "+base+"cm")}${tL(bx+sk-5,by+H/2,"たか"+height,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"平行四辺形（そこ×たか）", q:`平行四辺形 ${base},${height}` }; }
+function zTrapezoid(hard){ const ri=randInt; const top=ri(3,hard?9:6), bot=top+ri(2,hard?9:5); let H=ri(2,hard?8:6); if(((top+bot)*H)%2) H++; const a=(top+bot)*H/2;
+  const W=124,bx=28,by=20,th=64,topW=W*top/bot;
+  return { svg:svgZ(`<polygon points="${bx+(W-topW)/2},${by} ${bx+(W+topW)/2},${by} ${bx+W},${by+th} ${bx},${by+th}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(90,by-3,"うわべ "+top)}${tL(90,by+th+20,"したべ "+bot+"cm")}${tL(bx-5,by+th/2+4,"たか"+H,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"台形（(うわ+した)×たか÷2）", q:`台形 ${top},${bot},${H}` }; }
+function zRhombus(hard){ const ri=randInt; let d1=ri(4,hard?14:10), d2=ri(4,hard?12:8); if((d1*d2)%2) d1++; const a=d1*d2/2; const cx=90,cy=58,hx=46,hy=42;
+  return { svg:svgZ(`<polygon points="${cx},${cy-hy} ${cx+hx},${cy} ${cx},${cy+hy} ${cx-hx},${cy}" fill="#f5d0ec" stroke="#c026d3" stroke-width="3"/><line x1="${cx-hx}" y1="${cy}" x2="${cx+hx}" y2="${cy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="${cx}" y1="${cy-hy}" x2="${cx}" y2="${cy+hy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,cy+hy+26,"たいかくせん "+d1+"と"+d2)}`), ans:String(a), options:mathChoices(String(a)), hint:"ひし形（たいかく×たいかく÷2）", q:`ひし形 ${d1},${d2}` }; }
+function zBoxVol(hard){ const ri=randInt; const l=ri(2,hard?8:5), w=ri(2,hard?6:4), h=ri(2,hard?6:4); const a=l*w*h; const x=44,y=42,bw=72,bh=52,dx=26,dy=-20;
+  return { svg:svgZ(`<polygon points="${x},${y} ${x+dx},${y+dy} ${x+bw+dx},${y+dy} ${x+bw},${y}" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5"/><polygon points="${x+bw},${y} ${x+bw+dx},${y+dy} ${x+bw+dx},${y+bh+dy} ${x+bw},${y+bh}" fill="#93c5fd" stroke="#2563eb" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>${tL(90,y+bh+24,"たて"+w+" よこ"+l+" 高さ"+h)}`), ans:String(a), options:mathChoices(String(a)), hint:"直方体の たいせき（たて×よこ×高さ）", q:`直方体 ${l},${w},${h}` }; }
+function zCircum(hard){ const d=[10,20,30,40][randInt(0,hard?3:2)]; const a=Math.round(d*3.14*10)/10;
+  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="50" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/>${tL(90,52,"ちょっけい "+d+"cm")}`), ans:String(a), options:mathChoices(String(a)), hint:"円のまわり（ちょっけい×3.14）", q:`円周 ${d}` }; }
+function genZukei(grade, hard){
+  let pool;
+  if(grade<=2) pool=[()=>zClock(grade), zShapeName, zSides];
+  else if(grade<=4) pool=[()=>zRectArea(hard), ()=>zSquareArea(hard), ()=>zPerimeter(hard), zCircleRD, zAngle];
+  else pool=[()=>zTriArea(hard), ()=>zParallel(hard), ()=>zTrapezoid(hard), ()=>zRhombus(hard), ()=>zBoxVol(hard), ()=>zCircum(hard)];
+  return pool[Math.floor(Math.random()*pool.length)]();
+}
+const MATH_TAG = { calc:"けいさん", kuku:"⚡九九", word:"📝文章だい", zukei:"🕐ずけい" };
+function renderMathQuestion(){
+  const topic=state.mathTopic, hard=state.mode==="hard";
+  let p, isZukei=(topic==="zukei"), isWord=(topic==="word");
+  if(isZukei) p=genZukei(state.grade, hard);
+  else if(isWord) p=genWord(state.grade, hard);
+  else if(topic==="kuku") p=genKuku(hard);
+  else p=genMath(state.grade, hard, state.mode==="keypad");
+  state.curAnswer=p.ans; state.curQ=p.q || p.text || "もんだい";
+  $("qtag").textContent = MATH_TAG[topic] || "けいさん";
+  const qm=$("quizMain");
+  if(isZukei){ qm.className="quiz-main zukei"; qm.innerHTML=p.svg; }
+  else if(isWord){ qm.className="quiz-main word"; qm.textContent=p.text; }
+  else { qm.className="quiz-main"; qm.textContent=p.text+" = ?"; }
+  $("quizHint").textContent = p.hint || "";
+  $("writeArea").style.display="none";
+  const useKeypad = state.mode==="keypad" && !isZukei && !String(p.ans).includes("/");
+  if(useKeypad){
+    $("choices").style.display="none"; $("mathPad").style.display="block";
+    mathInput=""; updateMpDisplay(); $("mpSubmit").disabled=false;
+    setMessage("こたえを 入力してね"); $("timerWrap").style.visibility="hidden";
+  } else {
+    $("mathPad").style.display="none";
+    const opts = p.options || mathChoices(p.ans);
+    const box=$("choices"); box.style.display="grid"; box.innerHTML="";
+    opts.forEach(opt=>{ const b=document.createElement("button"); b.className="choice"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===p.ans,p.ans); box.appendChild(b); });
+    state.timeDur = topic==="kuku" ? (hard?4:6) : (hard?9:14);
+    setMessage(isWord?"よく よんで こたえてね":"クイズ！ こたえをえらんでね"); startTimer();
+  }
+}
+let mathInput="";
+function updateMpDisplay(){ $("mpDisplay").textContent = mathInput===""?"0":mathInput; }
+function buildKeypad(){
+  const keys=["1","2","3","4","5","6","7","8","9",".","0","⌫"];
+  const wrap=$("mpKeys"); wrap.innerHTML="";
+  keys.forEach(k=>{ const b=document.createElement("button"); b.textContent=k;
+    if(k==="⌫") b.className="mp-back";
+    b.onclick=()=>{ if(state.locked) return;
+      if(k==="⌫") mathInput=mathInput.slice(0,-1);
+      else if(k===".") { if(!mathInput.includes(".")&&mathInput!=="") mathInput+="."; }
+      else { if(mathInput.length<6) mathInput+=k; }
+      updateMpDisplay();
+    };
+    wrap.appendChild(b);
+  });
+}
+function submitMath(){
+  if(state.locked || mathInput==="") return;
+  state.locked=true; stopTimer(); state.total++; $("mpSubmit").disabled=true;
+  const ok = Math.abs(parseFloat(mathInput) - parseFloat(state.curAnswer)) < 1e-9;
+  if(ok) finishCorrect(); else finishWrong(`ざんねん…！ こたえは「${state.curAnswer}」`);
 }
 /* かならず正しい日本語になるものだけ文にする。それ以外は「ことばの穴埋め」だけ表示 */
 function makeSentence(cloze, entry){
@@ -2003,6 +2261,7 @@ function finishCorrect(){
 }
 function finishWrong(msg){
   state.combo=0; updateCombo(); setMessage(msg); SFX.wrong();
+  if(state.curQ && state.missed.length<30) state.missed.push({ q:state.curQ, a:String(state.curAnswer) });
   setTimeout(()=>enemyAttack(()=>setTimeout(proceedNext,260)),480);
 }
 function answerChosen(btn, isCorrect, answer){
@@ -2317,11 +2576,16 @@ function showResult(emoji,title,win,opts){
   opts=opts||{};
   $("resultEmoji").textContent=emoji; $("resultTitle").textContent=title;
   const rate=state.total?Math.round(state.correct/state.total*100):0;
-  const gradeLabel = state.mode==="kids" ? "ようじモード" : ("小学"+GRADE_LABELS[state.grade][0]);
+  const gradeLabel = state.subject==="math" ? ("さんすう 小学"+GRADE_LABELS[state.grade][0]) : (state.mode==="kids" ? "ようじモード" : ("小学"+GRADE_LABELS[state.grade][0]));
   let extra="";
   if(opts.firstBoss) extra = `<br>🔓 <b>裏ボス「やみのりゅうおう」かいきん！</b><br>つぎの ぼうけんで ちょうせんできる！`;
   else if(opts.secret) extra = `<br>🏆 <b>裏ボスを たおした！「やみのおうじゃ」が ショップに！</b>`;
   else if(win) extra = `<br>🌟 ショップで キャラや わざを そろえよう！`;
+  let review="";
+  if(state.missed.length){
+    const items = state.missed.slice(0,12).map(m=>`<div class="rv-item"><span>${m.q}</span><b>${m.a}</b></div>`).join("");
+    review = `<div class="review-box"><div class="review-h">📝 まちがえた もんだい（ふくしゅう）</div>${items}</div>`;
+  }
   $("resultStats").innerHTML =
     `がくねん：${gradeLabel}<br>`+
     `たおしたモンスター：${state.stage} / ${state.stages.length}<br>`+
@@ -2329,7 +2593,7 @@ function showResult(emoji,title,win,opts){
     `さいだいコンボ：${state.maxCombo} 🔥<br>`+
     `しゅうかい：${save.clears||0} かいめ<br>`+
     `<span class="reward">このゲームで 🪙${state.earned} ゲット！</span>`+
-    extra;
+    extra + review;
   show("result");
 }
 
@@ -2394,6 +2658,7 @@ $("resetBtn").onclick = () => { if(confirm("コインや買ったものを ぜ�
 window.addEventListener("resize", ()=>{ if(state.mode==="write" && screens.battle.classList.contains("active")) resizePad(); });
 
 buildGradeButtons();
+buildKeypad();
 refreshCoinHud();
 initPad();
 </script>
