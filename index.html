@@ -351,6 +351,7 @@
       <div id="gradeWrap">
         <div class="section-title">がくねんをえらんでスタート</div>
         <div class="grade-btns" id="gradeBtns"></div>
+        <button class="btn-primary mt" id="adultBtn" style="display:none; background:linear-gradient(135deg,#1f2937,#4b5563); box-shadow:0 6px 16px rgba(0,0,0,.35);">💪 大人モード（難読・四字熟語）</button>
       </div>
       <div id="kidsStart" style="display:none;">
         <div class="section-title">えと かんじを あわせよう！（タイマーなし・まけない）</div>
@@ -1527,6 +1528,90 @@ const KANJI_DATA = {
   ],
 };
 
+/* ===== 大人モード：難読語・四字熟語・中高漢字（読みクイズ）===== */
+const ADULT_KANJI = [
+  {k:"海豚", kun:"いるか", d:["かいとん","うみぶた","かいぶた"]},
+  {k:"海月", kun:"くらげ", d:["かいげつ","うみつき","かいつき"]},
+  {k:"河豚", kun:"ふぐ", d:["かとん","かわぶた","がとん"]},
+  {k:"蝙蝠", kun:"こうもり", d:["へんぷく","こうふく","へんもり"]},
+  {k:"梟", kun:"ふくろう", d:["きょう","ふくろ","みみずく"]},
+  {k:"啄木鳥", kun:"きつつき", d:["たくぼくちょう","つつどり","きつき"]},
+  {k:"翡翠", kun:"かわせみ", d:["ひすい","かわせび","ひせい"]},
+  {k:"百足", kun:"むかで", d:["ひゃくそく","ももあし","ひゃくあし"]},
+  {k:"蟷螂", kun:"かまきり", d:["とうろう","かまぎり","ぼうろう"]},
+  {k:"蜻蛉", kun:"とんぼ", d:["せいれい","かげろう","とんぼう"]},
+  {k:"蝸牛", kun:"かたつむり", d:["かぎゅう","かたつぶり","でんでんむし"]},
+  {k:"海星", kun:"ひとで", d:["かいせい","うみぼし","ひとぼし"]},
+  {k:"樹懶", kun:"なまけもの", d:["じゅらん","きなまけ","なまけもん"]},
+  {k:"麒麟", kun:"きりん", d:["きじん","りんき","ばりん"]},
+  {k:"駱駝", kun:"らくだ", d:["らくた","ばくだ","らくど"]},
+  {k:"土竜", kun:"もぐら", d:["どりゅう","つちりゅう","もぐらもち"]},
+  {k:"向日葵", kun:"ひまわり", d:["こうじつき","ひにむかい","にちりんそう"]},
+  {k:"紫陽花", kun:"あじさい", d:["しようか","あじさ","むらさきばな"]},
+  {k:"蒲公英", kun:"たんぽぽ", d:["ほこうえい","たんぽ","ぽぽえい"]},
+  {k:"秋桜", kun:"コスモス", d:["あきざくら","しゅうおう","あきおう"]},
+  {k:"仙人掌", kun:"さぼてん", d:["せんにんしょう","さぼ","しゃぼてん"]},
+  {k:"銀杏", kun:"いちょう", d:["ぎんなん","ぎんあん","いちよう"]},
+  {k:"葡萄", kun:"ぶどう", d:["ぶとう","ほどう","えびづる"]},
+  {k:"西瓜", kun:"すいか", d:["せいか","にしうり","さいか"]},
+  {k:"南瓜", kun:"かぼちゃ", d:["なんか","みなみうり","ぼうぶら"]},
+  {k:"胡瓜", kun:"きゅうり", d:["こか","からうり","えびうり"]},
+  {k:"玉蜀黍", kun:"とうもろこし", d:["ぎょくしょくしょ","たまもろこし","もろこしび"]},
+  {k:"林檎", kun:"りんご", d:["りんきん","はやしご","ばらか"]},
+  {k:"無花果", kun:"いちじく", d:["むかか","はななしか","むはなか"]},
+  {k:"陽炎", kun:"かげろう", d:["ようえん","ひかげ","かぎろい"]},
+  {k:"黄昏", kun:"たそがれ", d:["こうこん","おうこん","きいろがれ"]},
+  {k:"東雲", kun:"しののめ", d:["とううん","あずまぐも","ひがしぐも"]},
+  {k:"五月雨", kun:"さみだれ", d:["ごがつあめ","さつきあめ","ごげつう"]},
+  {k:"時雨", kun:"しぐれ", d:["じう","ときあめ","じあめ"]},
+  {k:"雪崩", kun:"なだれ", d:["せっぽう","ゆきくずれ","せつほう"]},
+  {k:"木漏れ日", kun:"こもれび", d:["もくろれび","きもれび","こぼれび"]},
+  {k:"足袋", kun:"たび", d:["そくたい","あしぶくろ","たぶくろ"]},
+  {k:"団扇", kun:"うちわ", d:["だんせん","まるおうぎ","だんおう"]},
+  {k:"刹那", kun:"せつな", d:["さつな","せちな","せつだ"]},
+  {k:"松脂", kun:"まつやに", d:["しょうし","まつあぶら","しょうやに"]},
+  {k:"灼熱", kun:"しゃくねつ", d:["せきねつ","やくねつ","しゃくれつ"]},
+  {k:"憂鬱", kun:"ゆううつ", d:["ゆうつ","うれいうつ","ようつ"]},
+  {k:"邂逅", kun:"かいこう", d:["かいごう","げこう","かいこ"]},
+  {k:"躊躇", kun:"ちゅうちょ", d:["じゅうしょ","ちょうちょ","ちゅうしょ"]},
+  {k:"杞憂", kun:"きゆう", d:["こゆう","きう","きゆ"]},
+  {k:"暢気", kun:"のんき", d:["ちょうき","ようき","のんけ"]},
+  {k:"贔屓", kun:"ひいき", d:["ふうき","びき","ひき"]},
+  {k:"老舗", kun:"しにせ", d:["ろうほ","おいみせ","ろうしゃ"]},
+  {k:"切磋琢磨", kun:"せっさたくま", d:["せっさだくま","せつまたくま","せっさたくみ"]},
+  {k:"臥薪嘗胆", kun:"がしんしょうたん", d:["がしんじょうたん","がしんしょうきも","ねしんしょうたん"]},
+  {k:"温故知新", kun:"おんこちしん", d:["おんこちじん","おんことしん","おんこしんしん"]},
+  {k:"一期一会", kun:"いちごいちえ", d:["いちきいちえ","いちごいっかい","いっきいちえ"]},
+  {k:"四面楚歌", kun:"しめんそか", d:["しめんそが","よんめんそか","しめんしょか"]},
+  {k:"朝令暮改", kun:"ちょうれいぼかい", d:["あされいぼかい","ちょうれいぼがい","ちょうれいくれかい"]},
+  {k:"試行錯誤", kun:"しこうさくご", d:["しこうさくじ","しぎょうさくご","しこうしゃくご"]},
+  {k:"電光石火", kun:"でんこうせっか", d:["でんこうせきひ","でんこうせっび","でんこういしび"]},
+  {k:"森羅万象", kun:"しんらばんしょう", d:["しんらまんしょう","しんらばんぞう","もりらばんしょう"]},
+  {k:"明鏡止水", kun:"めいきょうしすい", d:["めいきょうしみず","めいきょうとめみず","めいかがみしすい"]},
+  {k:"曖昧模糊", kun:"あいまいもこ", d:["あいまいぼこ","あいまいもご","あいまいもこり"]},
+  {k:"百花繚乱", kun:"ひゃっかりょうらん", d:["ひゃっかりゅうらん","ひゃっかれいらん","ももはなりょうらん"]},
+];
+ADULT_KANJI.forEach(e=>{ e.on=""; e.s=e.s||1; e.ew=e.k; e.er=e.kun; e.p="n"; });
+KANJI_DATA[7] = ADULT_KANJI;
+
+/* 四字熟語（穴埋め用） */
+const YOJI = [
+  {k:"切磋琢磨",y:"せっさたくま"},{k:"臥薪嘗胆",y:"がしんしょうたん"},{k:"温故知新",y:"おんこちしん"},{k:"一期一会",y:"いちごいちえ"},
+  {k:"四面楚歌",y:"しめんそか"},{k:"朝令暮改",y:"ちょうれいぼかい"},{k:"試行錯誤",y:"しこうさくご"},{k:"電光石火",y:"でんこうせっか"},
+  {k:"森羅万象",y:"しんらばんしょう"},{k:"明鏡止水",y:"めいきょうしすい"},{k:"曖昧模糊",y:"あいまいもこ"},{k:"百花繚乱",y:"ひゃっかりょうらん"},
+  {k:"一石二鳥",y:"いっせきにちょう"},{k:"十人十色",y:"じゅうにんといろ"},{k:"自業自得",y:"じごうじとく"},{k:"因果応報",y:"いんがおうほう"},
+  {k:"起承転結",y:"きしょうてんけつ"},{k:"公明正大",y:"こうめいせいだい"},{k:"半信半疑",y:"はんしんはんぎ"},{k:"単刀直入",y:"たんとうちょくにゅう"},
+  {k:"我田引水",y:"がでんいんすい"},{k:"言語道断",y:"ごんごどうだん"},{k:"弱肉強食",y:"じゃくにくきょうしょく"},{k:"適材適所",y:"てきざいてきしょ"},
+  {k:"油断大敵",y:"ゆだんたいてき"},{k:"七転八起",y:"しちてんはっき"},{k:"以心伝心",y:"いしんでんしん"},{k:"一網打尽",y:"いちもうだじん"},
+];
+/* 漢字パズル：まん中の漢字が 上下左右の漢字と 二字熟語をつくる（wは実際の熟語＝矢印の向きを導く） */
+const CROSS = [
+  {a:"火",w:["火山","花火","火事","噴火"]},{a:"手",w:["手紙","握手","手段","選手"]},{a:"日",w:["日記","毎日","日光","祝日"]},
+  {a:"気",w:["天気","気分","元気","空気"]},{a:"学",w:["学校","大学","学生","入学"]},{a:"水",w:["水道","海水","水分","香水"]},
+  {a:"心",w:["心配","安心","中心","熱心"]},{a:"生",w:["生活","先生","生物","誕生"]},{a:"中",w:["中央","集中","中止","命中"]},
+  {a:"出",w:["出口","外出","出発","提出"]},
+];
+
 const MONSTERS = [
   { name:"スライム", sprite:"🟢", art:"slime",  hp:5,  atk:1, chance:.12, atkIcon:"💧" },
   { name:"コウモリ", sprite:"🦇", art:"bat",    hp:7,  atk:1, chance:.30, atkIcon:"🌀" },
@@ -1850,7 +1935,7 @@ function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
 /* ===== タイトル ===== */
-const GRADE_LABELS = { 1:["1年","にゅうもん"], 2:["2年","やさしい"], 3:["3年","ふつう"], 4:["4年","ちょいむず"], 5:["5年","むずかしい"], 6:["6年","とてもむず"] };
+const GRADE_LABELS = { 1:["1年","にゅうもん"], 2:["2年","やさしい"], 3:["3年","ふつう"], 4:["4年","ちょいむず"], 5:["5年","むずかしい"], 6:["6年","とてもむず"], 7:["大人","難読・四字熟語"] };
 function buildGradeButtons(){
   const wrap=$("gradeBtns"); wrap.innerHTML="";
   for(const g of [1,2,3,4,5,6]){
@@ -1869,6 +1954,7 @@ function updateGradeLabels(){
 }
 document.querySelectorAll("#modeSeg button").forEach(b=>{ b.onclick=()=>{ document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; const kids=state.mode==="kids"; $("gradeWrap").style.display=kids?"none":"block"; $("kidsStart").style.display=kids?"block":"none"; }; });
 $("kidsStartBtn").onclick = ()=>{ SFX.select(); state.mode="kids"; startGame(1); };
+$("adultBtn").onclick = ()=>{ SFX.select(); state.mode="easy"; startGame(7); };
 
 /* ===== 科目スイッチ（かんじ／さんすう）===== */
 function setSubject(sub){
@@ -1885,6 +1971,7 @@ function setSubject(sub){
   document.querySelectorAll("#topicSegMath button").forEach(x=>x.classList.toggle("sel",x.dataset.topic==="calc"));
   state.mathTopic="calc";
   $("gradeWrap").style.display="block"; $("kidsStart").style.display="none";
+  $("adultBtn").style.display = math ? "none" : "block";
   updateGradeLabels();
 }
 document.querySelectorAll("#subjectSeg button").forEach(b=>{ b.onclick=()=>{ SFX.select(); setSubject(b.dataset.subject); }; });
@@ -1924,7 +2011,7 @@ function startGame(grade){
   state.atk=baseAtk(); state.gauge=0; state.skillBusy=false;
   state.pool=shuffle(state.subject==="math"?[1]:(state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade])); state.poolIdx=0;
   state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0; state.missed=[];
-  state.timeDur = (state.mode==="keypad"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
+  state.timeDur = state.grade>=7 ? 8 : (state.mode==="keypad"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
   $("playerSprite").innerHTML=avatarSVG(save.equipped,90);
   $("playerLvl").textContent="(攻"+state.atk+")";
   show("battle"); loadStage();
@@ -1991,6 +2078,19 @@ function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.tim
 /* ===== 出題 ===== */
 function nextEntry(){ if(state.poolIdx>=state.pool.length){ state.pool=shuffle(state.pool); state.poolIdx=0; } return state.pool[state.poolIdx++]; }
 function distractReadings(field,answer){ const set=[...new Set(state.pool.map(e=>e[field]).filter(r=>r&&r!==answer))]; return shuffle(set).slice(0,3); }
+/* 大人モード：同じ字数・近い読みの長さの語からハズレを選ぶ（形がそろって まぎらわしく する） */
+function adultDistractors(entry){
+  const ans=entry.kun;
+  if(entry.d && entry.d.length>=3){ const u=[...new Set(entry.d.filter(r=>r!==ans))]; if(u.length>=3) return shuffle(u).slice(0,3); }
+  const aLen=[...ans].length, kLen=entry.k.length;
+  let pool = ADULT_KANJI.filter(e=>e.kun!==ans && e.k.length===kLen);
+  if(pool.length<3) pool = ADULT_KANJI.filter(e=>e.kun!==ans);
+  pool = shuffle(pool).sort((a,b)=> Math.abs([...a.kun].length-aLen) - Math.abs([...b.kun].length-aLen));
+  const near = pool.slice(0, Math.min(pool.length, 7));
+  const out=[]; for(const e of shuffle(near)){ if(out.length>=3) break; if(!out.includes(e.kun)) out.push(e.kun); }
+  let i=0; while(out.length<3 && i<ADULT_KANJI.length){ const r=ADULT_KANJI[i++].kun; if(r!==ans && !out.includes(r)) out.push(r); }
+  return out;
+}
 function buildReadingQ(entry,field,hint,tag){ const answer=entry[field]; return { tag, prompt:entry.k, hint, answer, options:shuffle([answer,...distractReadings(field,answer)]), mainClass:"" }; }
 function buildStrokeQ(entry){
   const answer=entry.s+"画"; const set=new Set([entry.s]); const deltas=shuffle([-3,-2,-1,1,2,3,4]); let i=0;
@@ -2004,6 +2104,7 @@ function buildKanjiQ(entry){
   return { tag:"ぎゃくびき", prompt:reading, hint:"この よみの かんじは どれ？", answer:entry.k, options:shuffle([entry.k,...others]), mainClass:"reading" };
 }
 function makeQuestion(entry){
+  if(state.grade>=7){ const ans=entry.kun; return { tag:"難読", prompt:entry.k, hint:"この ことばの よみは？", answer:ans, options:shuffle([ans,...adultDistractors(entry)]), mainClass:"reading" }; }
   if(state.mode==="easy"){ const field=entry.kun?"kun":"on"; return buildReadingQ(entry,field,"ただしい よみを えらんでね","よみ"); }
   const cands=[]; if(entry.kun)cands.push("kun"); if(entry.on)cands.push("on"); cands.push("strokes","kanji");
   switch(pickOne(cands)){
@@ -2012,6 +2113,52 @@ function makeQuestion(entry){
     case "strokes": return buildStrokeQ(entry);
     default: return buildKanjiQ(entry);
   }
+}
+/* ===== 大人モード：読み／四字熟語の穴埋め／漢字パズル ===== */
+function yojiDistractors(y, ans){
+  const exclude=new Set([...y.k]);
+  const pool=[...new Set(YOJI.flatMap(x=>[...x.k]).filter(c=>!exclude.has(c)))];
+  return shuffle(pool).slice(0,3);
+}
+function crossDistractors(p){ return shuffle(CROSS.filter(x=>x.a!==p.a).map(x=>x.a)).slice(0,3); }
+function crossSVG(sp){  // sp = [上,右,下,左] それぞれ {k, dir:'out'(中→外) | 'in'(外→中)}
+  const cell=(c,r,txt,hl)=>{ const x=21+c*50, y=6+r*50;
+    return `<rect x="${x}" y="${y}" width="38" height="38" rx="6" fill="${hl?'#fde68a':'#ffffff'}" stroke="#7c3aed" stroke-width="2.5"/><text x="${x+19}" y="${y+27}" font-size="24" text-anchor="middle" fill="#1f2438" font-weight="bold">${txt}</text>`; };
+  const arr=(x1,y1,x2,y2)=>{ const ang=Math.atan2(y2-y1,x2-x1),hl=5,a1=ang+2.5,a2=ang-2.5;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round"/><path d="M${x2} ${y2} L${(x2+hl*Math.cos(a1)).toFixed(1)} ${(y2+hl*Math.sin(a1)).toFixed(1)} M${x2} ${y2} L${(x2+hl*Math.cos(a2)).toFixed(1)} ${(y2+hl*Math.sin(a2)).toFixed(1)}" stroke="#ef4444" stroke-width="2.4" fill="none" stroke-linecap="round"/>`; };
+  const aTop  = sp[0].dir==="out" ? arr(90,54,90,46) : arr(90,46,90,54);
+  const aRight= sp[1].dir==="out" ? arr(110,75,118,75) : arr(118,75,110,75);
+  const aBot  = sp[2].dir==="out" ? arr(90,96,90,104) : arr(90,104,90,96);
+  const aLeft = sp[3].dir==="out" ? arr(70,75,62,75) : arr(62,75,70,75);
+  return svgZ(`${cell(1,0,sp[0].k)}${cell(0,1,sp[3].k)}${cell(1,1,'?',true)}${cell(2,1,sp[1].k)}${cell(1,2,sp[2].k)}${aTop}${aRight}${aBot}${aLeft}`);
+}
+function renderAdultQuestion(){
+  const roll=Math.random();
+  const type = roll<0.5 ? "read" : roll<0.75 ? "yoji" : "cross";
+  let prompt="", svg=null, answer, options, hint, tag, mainClass="reading";
+  if(type==="read"){
+    const e=pickOne(ADULT_KANJI); answer=e.kun; prompt=e.k; hint="この ことばの よみは？"; tag="難読";
+    options=shuffle([answer,...adultDistractors(e)]); state.curQ=e.k;
+  } else if(type==="yoji"){
+    const yo=pickOne(YOJI); const chars=[...yo.k]; const pos=randInt(0,chars.length-1);
+    answer=chars[pos]; prompt=chars.map((c,i)=>i===pos?"□":c).join(""); mainClass="";
+    hint="□に 入る 漢字は？"; tag="四字熟語"; options=shuffle([answer,...yojiDistractors(yo,answer)]); state.curQ=`${yo.k}（${yo.y}）`;
+  } else {
+    const p=pickOne(CROSS); answer=p.a;
+    const spokes=shuffle(p.w.map(w=>({ k:w.replace(p.a,""), dir: w.indexOf(p.a)===0?"out":"in" })));
+    svg=crossSVG(spokes);
+    hint="まん中に 入る 漢字は？（やじるしの向きに 二字熟語）"; tag="漢字パズル"; options=shuffle([answer,...crossDistractors(p)]); state.curQ=`漢字パズル（答 ${p.a}）`;
+  }
+  state.curAnswer=answer;
+  setMessage("クイズ！ こたえをえらんでね");
+  $("qtag").textContent=tag;
+  const qm=$("quizMain");
+  if(svg){ qm.className="quiz-main zukei"; qm.innerHTML=svg; } else { qm.className="quiz-main "+mainClass; qm.textContent=prompt; }
+  $("quizHint").textContent=hint;
+  $("writeArea").style.display="none"; $("mathPad").style.display="none";
+  const box=$("choices"); box.style.display="grid"; box.innerHTML="";
+  options.forEach(opt=>{ const b=document.createElement("button"); b.className="choice"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===answer,answer); box.appendChild(b); });
+  startTimer();
 }
 function nextQuestion(){
   if(state.poison>0){
@@ -2023,8 +2170,9 @@ function nextQuestion(){
   const entry=nextEntry(); state.curEntry=entry;
   $("quizArea").style.display="block"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none";
   if(state.subject==="math"){ state.curEntry=null; renderMathQuestion(); return; }
-  if(state.mode==="kids"){ renderKidsQuestion(entry); return; }
-  if(state.mode==="write"){ renderWriteQuestion(entry); return; }
+  if(state.mode==="kids" && state.grade<7){ renderKidsQuestion(entry); return; }
+  if(state.mode==="write" && state.grade<7){ renderWriteQuestion(entry); return; }
+  if(state.grade>=7){ renderAdultQuestion(); return; }
   const q=makeQuestion(entry); state.curAnswer=q.answer; state.curQ=q.prompt;
   setMessage("クイズ！ こたえをえらんでね");
   $("qtag").textContent=q.tag; $("quizMain").className="quiz-main "+q.mainClass; $("quizMain").textContent=q.prompt; $("quizHint").textContent=q.hint;
@@ -2115,10 +2263,17 @@ function mathChoices(ansStr){
   }
   const isDec=ansStr.includes("."); const ans=parseFloat(ansStr); const set=new Set([ansStr]);
   const fmt=v=>{ v=Math.round(v*(isDec?10:1))/(isDec?10:1); return String(v); };
-  for(const dd of shuffle(isDec?[0.1,-0.1,0.2,-0.2,1,-1,0.3]:[1,-1,2,-2,10,-10,3,-3])){
-    if(set.size>=4) break; const v=ans+dd; if(v>=0) set.add(fmt(v));
-  }
-  let e=4; while(set.size<4){ const v=ans+e; if(v>=0) set.add(fmt(v)); e++; if(e>40)break; }
+  // ハズレも答えと同じ「キリの良さ」に そろえる（キリのいい数を選ぶだけで当たらないように）
+  let step=1;
+  if(isDec) step=0.1;
+  else if(ans>=100 && ans%50===0) step=50;
+  else if(ans>=20 && ans%10===0) step=10;
+  else if(ans>=10 && ans%5===0) step=5;
+  const mult = shuffle(isDec ? [1,-1,2,-2,5,-5,3] : [1,-1,2,-2,3,-3,4]);
+  const minV = ans>=1 ? step : 0;   // 0 は不自然な選択肢なので、答えが1以上なら 0 を出さない
+  for(const m of mult){ if(set.size>=4) break; const v=ans+m*step; if(v>=minV) set.add(fmt(v)); }
+  let e=4; while(set.size<4){ const v=ans+e*step; if(v>=minV) set.add(fmt(v)); e++; if(e>80)break; }
+  while(set.size<4){ const v=ans+(set.size+1)*step; set.add(fmt(v)); }
   return shuffle([...set]);
 }
 /* 九九スピード */
@@ -2153,7 +2308,10 @@ function genWord(grade, hard){
       case 1:{ const o=[[10,10],[20,5],[25,4],[50,2]][ri(0,3)]; const k=ri(2,hard?12:8); text=`${k*o[1]}円の ${o[0]}%は なん円？`; ans=k; break; }
       case 2:{ const t=ri(2,5), v=ri(2,6)*10, d=v*t; text=`${d}kmの 道のりを ${t}時間で すすみました。じそく なんkm？`; ans=v; break; }
       case 3:{ const n=ri(3,8), unit=ri(2,9)*10; text=`${n}こで ${n*unit}円の おかし。1こ なん円？`; ans=unit; break; }
-      case 4:{ const m=ri(4,9)*10; text=`テストの てんすうは ${m-10}点、${m}点、${m+10}点。へいきんは なん点？`; ans=m; break; }
+      case 4:{ const avg=ri(40,85); let v1,v2,v3,t=0;
+        do { v1=avg+ri(-15,15); v2=avg+ri(-15,15); v3=3*avg-v1-v2; t++; }
+        while(t<40 && (v1<10||v1>100||v2<10||v2>100||v3<10||v3>100 || (v2-v1)===(v3-v2) || (v1===v2&&v2===v3)));
+        text=`テストの てんすうは ${v1}点、${v2}点、${v3}点。へいきんは なん点？`; ans=avg; break; }
       case 5:{ const parts=[2,3,4,5][ri(0,3)]; const base=parts*ri(3,9); const take=ri(1,parts-1); text=`${base}この あめの ${take}/${parts}は なんこ？`; ans=base/parts*take; break; }
       default:{ const v=ri(3,8)*10, h=ri(2,6), d=v*h; text=`じそく ${v}kmで ${d}km すすむには なん時間 かかる？`; ans=h; }
     }
@@ -2169,7 +2327,7 @@ function clockSVG(h,m){
 }
 function fmtTime(h,m){ return m===0 ? `${h}じ` : `${h}じ${m}ふん`; }
 function svgZ(inner){ return `<svg viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
-function tL(x,y,txt,anchor){ return `<text x="${x}" y="${y}" font-size="14" text-anchor="${anchor||'middle'}" fill="#1f2438" font-weight="bold">${txt}</text>`; }
+function tL(x,y,txt,anchor){ return `<text x="${x}" y="${y}" font-size="13" text-anchor="${anchor||'middle'}" fill="#1f2438" font-weight="bold">${txt}</text>`; }
 function nearNum(n,lo,hi){ const set=new Set([String(n)]); for(const v of shuffle([n-1,n+1,n-2,n+2,n-3,n+3,lo,hi])){ if(set.size>=4)break; if(v>=lo) set.add(String(v)); } return shuffle([...set]); }
 /* --- 1〜2年 --- */
 function zClock(grade){ const ri=randInt; const h=ri(1,12), ml=grade===1?[0,30]:[0,15,30,45]; const m=ml[ri(0,ml.length-1)];
@@ -2185,42 +2343,42 @@ function zShapeName(){ const sh=[
 function zSides(){ const ps=[{n:3,p:"90,24 130,96 50,96"},{n:4,p:"54,30 126,30 126,98 54,98"},{n:5,p:"90,22 132,54 116,100 64,100 48,54"},{n:6,p:"66,26 114,26 138,68 114,110 66,110 42,68"}];
   const x=ps[randInt(0,3)]; return { svg:svgZ(`<polygon points="${x.p}" fill="#e9d5ff" stroke="#7c3aed" stroke-width="3"/>`), ans:String(x.n), options:nearNum(x.n,3,8), hint:"かどは いくつ？", q:"かどの数("+x.n+")" }; }
 /* --- 3〜4年 --- */
-function zRectArea(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=w*h; const W=120,H=80,bx=30,by=16;
-  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(bx+W/2,by+H+20,"よこ "+w+"cm")}${tL(bx-6,by+H/2+5,"たて"+h,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"長方形の めんせき（たて×よこ）", q:`長方形 ${w}×${h}` }; }
-function zSquareArea(hard){ const ri=randInt; const s=ri(3,hard?12:8); const a=s*s; const S=84,bx=48,by=14;
-  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${S}" height="${S}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/>${tL(90,by+S+20,"1ぺん "+s+"cm")}`), ans:String(a), options:mathChoices(String(a)), hint:"正方形の めんせき（1ぺん×1ぺん）", q:`正方形 ${s}` }; }
-function zPerimeter(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=(w+h)*2; const W=120,H=78,bx=30,by=18;
-  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#fff3c4" stroke="#ca8a04" stroke-width="3"/>${tL(bx+W/2,by+H+20,"よこ "+w+"cm")}${tL(bx-6,by+H/2+5,"たて"+h,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"まわりの長さ（(たて+よこ)×2）", q:`まわり ${w},${h}` }; }
+function zRectArea(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=w*h; const W=110,H=70,bx=35,by=18;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(90,by+H+28,`よこ${w}cm・たて${h}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"長方形の 面積（たて×よこ）", q:`長方形 ${w}×${h}` }; }
+function zSquareArea(hard){ const ri=randInt; const s=ri(3,hard?12:8); const a=s*s; const S=76,bx=52,by=16;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${S}" height="${S}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/>${tL(90,by+S+28,`1辺 ${s}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"正方形の 面積（1辺×1辺）", q:`正方形 ${s}` }; }
+function zPerimeter(hard){ const ri=randInt; const w=ri(3,hard?12:8), h=ri(2,hard?9:6); const a=(w+h)*2; const W=110,H=68,bx=35,by=18;
+  return { svg:svgZ(`<rect x="${bx}" y="${by}" width="${W}" height="${H}" fill="#fff3c4" stroke="#ca8a04" stroke-width="3"/>${tL(90,by+H+28,`よこ${w}cm・たて${h}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"まわりの 長さ（(たて+よこ)×2）", q:`まわり ${w},${h}` }; }
 function zCircleRD(){ const r=randInt(2,9);
-  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="90" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="60" r="3" fill="#dc2626"/>${tL(108,52,"はんけい"+r)}`), ans:String(r*2), options:mathChoices(String(r*2)), hint:"ちょっけいは？（はんけい×2）", q:`円 はんけい${r}` }; }
+  return { svg:svgZ(`<circle cx="90" cy="56" r="38" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="90" y1="56" x2="128" y2="56" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="56" r="3" fill="#dc2626"/>${tL(90,122,`半径 ${r}cm`)}`), ans:String(r*2), options:mathChoices(String(r*2)), hint:"直径は？（半径×2）", q:`円 半径${r}` }; }
 function zAngle(){ const A=[30,45,60,90,120,135]; const d=A[randInt(0,A.length-1)]; const rad=d*Math.PI/180; const L=86,R=24;
   const x2=(40+L*Math.cos(rad)).toFixed(1), y2=(118-L*Math.sin(rad)).toFixed(1); const ax=(40+R*Math.cos(rad)).toFixed(1), ay=(118-R*Math.sin(rad)).toFixed(1);
-  return { svg:svgZ(`<line x1="40" y1="118" x2="150" y2="118" stroke="#1f2438" stroke-width="3"/><line x1="40" y1="118" x2="${x2}" y2="${y2}" stroke="#1f2438" stroke-width="3"/><path d="M ${40+R} 118 A ${R} ${R} 0 0 0 ${ax} ${ay}" fill="none" stroke="#ef4444" stroke-width="2.5"/>`), ans:String(d), options:(()=>{const s=new Set([String(d)]);for(const v of shuffle(A)){if(s.size>=4)break;if(v!==d)s.add(String(v));}return shuffle([...s]);})(), hint:"この かくどは なんど？", q:`角度 ${d}°` }; }
+  return { svg:svgZ(`<line x1="40" y1="118" x2="150" y2="118" stroke="#1f2438" stroke-width="3"/><line x1="40" y1="118" x2="${x2}" y2="${y2}" stroke="#1f2438" stroke-width="3"/><path d="M ${40+R} 118 A ${R} ${R} 0 0 0 ${ax} ${ay}" fill="none" stroke="#ef4444" stroke-width="2.5"/>`), ans:String(d), options:(()=>{const s=new Set([String(d)]);for(const v of shuffle(A)){if(s.size>=4)break;if(v!==d)s.add(String(v));}return shuffle([...s]);})(), hint:"この 角度は 何度？", q:`角度 ${d}°` }; }
 /* --- 5〜6年 --- */
-function zTriArea(hard){ const ri=randInt; let base=ri(4,hard?14:10), height=ri(2,hard?12:8); if((base*height)%2) base++; const a=base*height/2; const W=130,H=84,bx=25,by=14;
-  return { svg:svgZ(`<polygon points="${bx},${by+H} ${bx+W},${by+H} ${bx+W*0.42},${by}" fill="#ffe1b8" stroke="#f97316" stroke-width="3"/><line x1="${bx+W*0.42}" y1="${by}" x2="${bx+W*0.42}" y2="${by+H}" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,by+H+20,"そこへん "+base+"cm")}${tL(bx+W*0.42+5,by+H/2,"たか"+height,'start')}`), ans:String(a), options:mathChoices(String(a)), hint:"三角形の めんせき（そこ×たか÷2）", q:`三角形 ${base},${height}` }; }
-function zParallel(hard){ const ri=randInt; const base=ri(4,hard?12:9), height=ri(3,hard?9:6); const a=base*height; const W=104,H=68,bx=30,by=18,sk=26;
-  return { svg:svgZ(`<polygon points="${bx+sk},${by} ${bx+sk+W},${by} ${bx+W},${by+H} ${bx},${by+H}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/><line x1="${bx+sk}" y1="${by}" x2="${bx+sk}" y2="${by+H}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(bx+W/2+sk/2,by+H+20,"そこへん "+base+"cm")}${tL(bx+sk-5,by+H/2,"たか"+height,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"平行四辺形（そこ×たか）", q:`平行四辺形 ${base},${height}` }; }
+function zTriArea(hard){ const ri=randInt; let base=ri(4,hard?14:10), height=ri(2,hard?12:8); if((base*height)%2) base++; const a=base*height/2; const W=120,H=76,bx=30,by=16; const apex=bx+W*0.42;
+  return { svg:svgZ(`<polygon points="${bx},${by+H} ${bx+W},${by+H} ${apex},${by}" fill="#ffe1b8" stroke="#f97316" stroke-width="3"/><line x1="${apex}" y1="${by}" x2="${apex}" y2="${by+H}" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,by+H+28,`底辺${base}cm・高さ${height}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"三角形の 面積（底辺×高さ÷2）", q:`三角形 ${base},${height}` }; }
+function zParallel(hard){ const ri=randInt; const base=ri(4,hard?12:9), height=ri(3,hard?9:6); const a=base*height; const W=94,H=62,bx=33,by=18,sk=20;
+  return { svg:svgZ(`<polygon points="${bx+sk},${by} ${bx+sk+W},${by} ${bx+W},${by+H} ${bx},${by+H}" fill="#d9f5d0" stroke="#16a34a" stroke-width="3"/><line x1="${bx+sk}" y1="${by}" x2="${bx+sk}" y2="${by+H}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,by+H+30,`底辺${base}cm・高さ${height}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"平行四辺形の 面積（底辺×高さ）", q:`平行四辺形 ${base},${height}` }; }
 function zTrapezoid(hard){ const ri=randInt; const top=ri(3,hard?9:6), bot=top+ri(2,hard?9:5); let H=ri(2,hard?8:6); if(((top+bot)*H)%2) H++; const a=(top+bot)*H/2;
-  const W=124,bx=28,by=20,th=64,topW=W*top/bot;
-  return { svg:svgZ(`<polygon points="${bx+(W-topW)/2},${by} ${bx+(W+topW)/2},${by} ${bx+W},${by+th} ${bx},${by+th}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(90,by-3,"うわべ "+top)}${tL(90,by+th+20,"したべ "+bot+"cm")}${tL(bx-5,by+th/2+4,"たか"+H,'end')}`), ans:String(a), options:mathChoices(String(a)), hint:"台形（(うわ+した)×たか÷2）", q:`台形 ${top},${bot},${H}` }; }
-function zRhombus(hard){ const ri=randInt; let d1=ri(4,hard?14:10), d2=ri(4,hard?12:8); if((d1*d2)%2) d1++; const a=d1*d2/2; const cx=90,cy=58,hx=46,hy=42;
-  return { svg:svgZ(`<polygon points="${cx},${cy-hy} ${cx+hx},${cy} ${cx},${cy+hy} ${cx-hx},${cy}" fill="#f5d0ec" stroke="#c026d3" stroke-width="3"/><line x1="${cx-hx}" y1="${cy}" x2="${cx+hx}" y2="${cy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="${cx}" y1="${cy-hy}" x2="${cx}" y2="${cy+hy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,cy+hy+26,"たいかくせん "+d1+"と"+d2)}`), ans:String(a), options:mathChoices(String(a)), hint:"ひし形（たいかく×たいかく÷2）", q:`ひし形 ${d1},${d2}` }; }
-function zBoxVol(hard){ const ri=randInt; const l=ri(2,hard?8:5), w=ri(2,hard?6:4), h=ri(2,hard?6:4); const a=l*w*h; const x=44,y=42,bw=72,bh=52,dx=26,dy=-20;
-  return { svg:svgZ(`<polygon points="${x},${y} ${x+dx},${y+dy} ${x+bw+dx},${y+dy} ${x+bw},${y}" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5"/><polygon points="${x+bw},${y} ${x+bw+dx},${y+dy} ${x+bw+dx},${y+bh+dy} ${x+bw},${y+bh}" fill="#93c5fd" stroke="#2563eb" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>${tL(90,y+bh+24,"たて"+w+" よこ"+l+" 高さ"+h)}`), ans:String(a), options:mathChoices(String(a)), hint:"直方体の たいせき（たて×よこ×高さ）", q:`直方体 ${l},${w},${h}` }; }
+  const W=110,bx=35,by=20,th=56,topW=W*top/bot;
+  return { svg:svgZ(`<polygon points="${bx+(W-topW)/2},${by} ${bx+(W+topW)/2},${by} ${bx+W},${by+th} ${bx},${by+th}" fill="#cfe3ff" stroke="#2563eb" stroke-width="3"/>${tL(90,by+th+28,`上底${top}　下底${bot}　高さ${H}`)}`), ans:String(a), options:mathChoices(String(a)), hint:"台形の 面積（(上底+下底)×高さ÷2）※cm", q:`台形 ${top},${bot},${H}` }; }
+function zRhombus(hard){ const ri=randInt; let d1=ri(4,hard?14:10), d2=ri(4,hard?12:8); if((d1*d2)%2) d1++; const a=d1*d2/2; const cx=90,cy=54,hx=44,hy=40;
+  return { svg:svgZ(`<polygon points="${cx},${cy-hy} ${cx+hx},${cy} ${cx},${cy+hy} ${cx-hx},${cy}" fill="#f5d0ec" stroke="#c026d3" stroke-width="3"/><line x1="${cx-hx}" y1="${cy}" x2="${cx+hx}" y2="${cy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="${cx}" y1="${cy-hy}" x2="${cx}" y2="${cy+hy}" stroke="#c026d3" stroke-width="1.5" stroke-dasharray="4 3"/>${tL(90,cy+hy+28,`対角線 ${d1}cmと${d2}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"ひし形の 面積（対角線×対角線÷2）", q:`ひし形 ${d1},${d2}` }; }
+function zBoxVol(hard){ const ri=randInt; const l=ri(2,hard?8:5), w=ri(2,hard?6:4), h=ri(2,hard?6:4); const a=l*w*h; const x=46,y=44,bw=70,bh=50,dx=24,dy=-18;
+  return { svg:svgZ(`<polygon points="${x},${y} ${x+dx},${y+dy} ${x+bw+dx},${y+dy} ${x+bw},${y}" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5"/><polygon points="${x+bw},${y} ${x+bw+dx},${y+dy} ${x+bw+dx},${y+bh+dy} ${x+bw},${y+bh}" fill="#93c5fd" stroke="#2563eb" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>${tL(90,y+bh+28,`たて${w}　よこ${l}　高さ${h}`)}`), ans:String(a), options:mathChoices(String(a)), hint:"直方体の 体積（たて×よこ×高さ）※cm", q:`直方体 ${l},${w},${h}` }; }
 function zCircum(hard){ const d=[10,20,30,40][randInt(0,hard?3:2)]; const a=Math.round(d*3.14*10)/10;
-  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="50" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/>${tL(90,52,"ちょっけい "+d+"cm")}`), ans:String(a), options:mathChoices(String(a)), hint:"円のまわり（ちょっけい×3.14）", q:`円周 ${d}` }; }
+  return { svg:svgZ(`<circle cx="90" cy="56" r="38" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="52" y1="56" x2="128" y2="56" stroke="#dc2626" stroke-width="2.5"/>${tL(90,122,`直径 ${d}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"円のまわり（直径×3.14）", q:`円周 ${d}` }; }
 function zCircleR(){ const r=randInt(2,9); const d=r*2;
-  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="50" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="60" r="3" fill="#dc2626"/>${tL(90,52,"ちょっけい "+d+"cm")}`), ans:String(r), options:mathChoices(String(r)), hint:"はんけいは？（ちょっけい÷2）", q:`円 ちょっけい${d}→はんけい` }; }
+  return { svg:svgZ(`<circle cx="90" cy="56" r="38" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="52" y1="56" x2="128" y2="56" stroke="#dc2626" stroke-width="2.5"/>${tL(90,122,`直径 ${d}cm`)}`), ans:String(r), options:mathChoices(String(r)), hint:"半径は？（直径÷2）", q:`円 直径${d}→半径` }; }
 function zCircleArea(hard){ const r=[5,10,15,20][randInt(0,hard?3:1)]; const a=Math.round(r*r*3.14*10)/10;
-  return { svg:svgZ(`<circle cx="90" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="90" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="60" r="3" fill="#dc2626"/>${tL(108,52,"はんけい"+r)}`), ans:String(a), options:mathChoices(String(a)), hint:"円の めんせき（はんけい×はんけい×3.14）", q:`円の面積 はんけい${r}` }; }
-function zCubeVol(hard){ const s=randInt(2,hard?7:5); const a=s*s*s; const x=50,y=44,bw=64,bh=64,dx=24,dy=-18;
-  return { svg:svgZ(`<polygon points="${x},${y} ${x+dx},${y+dy} ${x+bw+dx},${y+dy} ${x+bw},${y}" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5"/><polygon points="${x+bw},${y} ${x+bw+dx},${y+dy} ${x+bw+dx},${y+bh+dy} ${x+bw},${y+bh}" fill="#93c5fd" stroke="#2563eb" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>${tL(90,y+bh+24,"1ぺん "+s+"cm")}`), ans:String(a), options:mathChoices(String(a)), hint:"立方体の たいせき（1ぺん×1ぺん×1ぺん）", q:`立方体 ${s}` }; }
+  return { svg:svgZ(`<circle cx="90" cy="56" r="38" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/><line x1="90" y1="56" x2="128" y2="56" stroke="#dc2626" stroke-width="2.5"/><circle cx="90" cy="56" r="3" fill="#dc2626"/>${tL(90,122,`半径 ${r}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"円の 面積（半径×半径×3.14）", q:`円の面積 半径${r}` }; }
+function zCubeVol(hard){ const s=randInt(2,hard?7:5); const a=s*s*s; const x=52,y=44,bw=62,bh=62,dx=22,dy=-16;
+  return { svg:svgZ(`<polygon points="${x},${y} ${x+dx},${y+dy} ${x+bw+dx},${y+dy} ${x+bw},${y}" fill="#bfdbfe" stroke="#2563eb" stroke-width="2.5"/><polygon points="${x+bw},${y} ${x+bw+dx},${y+dy} ${x+bw+dx},${y+bh+dy} ${x+bw},${y+bh}" fill="#93c5fd" stroke="#2563eb" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>${tL(90,y+bh+28,`1辺 ${s}cm`)}`), ans:String(a), options:mathChoices(String(a)), hint:"立方体の 体積（1辺×1辺×1辺）", q:`立方体 ${s}` }; }
 function genZukei(grade, hard){
   let pool;
   if(grade<=2) pool=[()=>zClock(grade), zShapeName, zSides];
   else if(grade<=4) pool=[()=>zRectArea(hard), ()=>zSquareArea(hard), ()=>zPerimeter(hard), zCircleRD, zCircleR, zAngle];
-  else pool=[()=>zTriArea(hard), ()=>zParallel(hard), ()=>zTrapezoid(hard), ()=>zRhombus(hard), ()=>zBoxVol(hard), ()=>zCircum(hard), ()=>zCircleArea(hard), ()=>zCubeVol(hard)];
+  else pool=[()=>zTriArea(hard), ()=>zParallel(hard), ()=>zTrapezoid(hard), ()=>zRhombus(hard), ()=>zBoxVol(hard), ()=>zCubeVol(hard)];
   return pool[Math.floor(Math.random()*pool.length)]();
 }
 const MATH_TAG = { calc:"けいさん", kuku:"⚡九九", word:"📝文章だい", zukei:"🕐ずけい" };
@@ -2325,7 +2483,7 @@ function proceedNext(){
   if(state.enemyHp<=0){ stageClear(); return; }
   if(state.playerHp<=0){ gameOver(); return; }
   $("quizArea").style.display="none"; $("nextBtn").style.display="block"; $("timerWrap").style.visibility="hidden";
-  $("afterOrderBtn").style.display = (state.curEntry && state.mode!=="kids") ? "block" : "none";
+  $("afterOrderBtn").style.display = (state.curEntry && state.mode!=="kids" && state.grade<7) ? "block" : "none";
 }
 $("nextBtn").onclick = nextQuestion;
 $("afterOrderBtn").onclick = ()=>{ if(state.curEntry) showStroke(state.curEntry.k); };
@@ -2703,6 +2861,7 @@ window.addEventListener("resize", ()=>{ if(state.mode==="write" && screens.battl
 
 buildGradeButtons();
 buildKeypad();
+setSubject("kanji");
 refreshCoinHud();
 initPad();
 </script>
