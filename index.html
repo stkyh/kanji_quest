@@ -184,6 +184,19 @@
   .choice.correct { background:linear-gradient(135deg,var(--good1),var(--good2)); color:#fff; border-color:transparent; box-shadow:0 8px 18px rgba(16,185,129,.35); }
   .choice.wrong { background:linear-gradient(135deg,var(--bad1),var(--bad2)); color:#fff; border-color:transparent; box-shadow:0 8px 18px rgba(239,68,68,.35); }
   .choice.kids { font-size:34px; padding:22px 6px; }
+  .choice.subj { font-size:15px; padding:13px 6px; line-height:1.3; }
+  .sticker-sum { background:var(--card); border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 6px 16px rgba(8,10,30,.22); }
+  .ss-total { font-size:14px; font-weight:800; color:var(--ink); text-align:center; margin-bottom:8px; }
+  .ss-total b { color:var(--gold2); font-size:18px; }
+  .ss-row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .ss-chip { background:#f3f4ff; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700; color:#374151; }
+  .ss-chip b { color:var(--accent1); }
+  .sticker-day { background:var(--card); border-radius:14px; padding:10px 12px; box-shadow:0 4px 12px rgba(8,10,30,.18); }
+  .sd-date { font-size:12px; font-weight:800; color:var(--muted); margin-bottom:6px; }
+  .sd-stickers { display:flex; flex-wrap:wrap; gap:3px; align-items:center; }
+  .stk { font-size:24px; line-height:1.1; filter:drop-shadow(0 1px 1px rgba(0,0,0,.2)); animation:pop .4s backwards; }
+  .stk-more { font-size:13px; font-weight:800; color:var(--muted); margin-left:4px; }
+  .sticker-empty { text-align:center; color:var(--muted); font-size:14px; padding:30px 10px; line-height:1.8; }
   .seg button[data-mode="kids"].sel { color:#db2777; }
 
   /* ===== 手書きパッド ===== */
@@ -325,11 +338,14 @@
       <p>もんだいに こたえて<br>モンスターをやっつけよう！</p>
       <div id="titleProgress" style="font-size:12px; color:#6b7280; margin-bottom:8px; font-weight:700;"></div>
       <div class="section-title">かもくを えらぶ</div>
-      <div class="seg" id="subjectSeg">
-        <button class="sel" data-subject="kanji">📖 かんじ</button>
-        <button data-subject="math">🔢 さんすう</button>
+      <div class="seg" id="subjectSeg" style="flex-wrap:wrap;">
+        <button class="sel" data-subject="kanji">📖かんじ</button>
+        <button data-subject="math">🔢さんすう</button>
+        <button data-subject="english">🔤えいご</button>
+        <button data-subject="science">🔬りか</button>
+        <button data-subject="social">🌏しゃかい</button>
       </div>
-      <div class="section-title">モードをえらぶ</div>
+      <div class="section-title" id="modeTitle">モードをえらぶ</div>
       <div class="seg" id="modeSeg">
         <button id="kidsModeBtn" data-mode="kids" style="display:none;">👶ようじ<small>えあわせ</small><span class="coinrate">🪙×0.7</span></button>
         <button class="sel" data-mode="easy">やさしい<small>よみ・4たく</small><span class="coinrate">🪙×1</span></button>
@@ -347,7 +363,11 @@
         <button data-topic="word">📝文章</button>
         <button data-topic="zukei">🕐ずけい</button>
       </div>
-      <div style="font-size:10.5px; color:#9aa0ad; text-align:center; margin-top:6px;">🪙はモードのごほうび倍率。学年・ステージ・周回が上がるほど もっと もらえる！</div>
+      <div class="seg" id="modeSegEng" style="display:none;">
+        <button class="sel" data-mode="easy">📝もじ</button>
+        <button data-mode="listen">🔊リスニング</button>
+      </div>
+      <div id="modeNote" style="font-size:10.5px; color:#9aa0ad; text-align:center; margin-top:6px;">🪙はモードのごほうび倍率。学年・ステージ・周回が上がるほど もっと もらえる！</div>
       <div id="gradeWrap">
         <div class="section-title">がくねんをえらんでスタート</div>
         <div class="grade-btns" id="gradeBtns"></div>
@@ -358,7 +378,16 @@
         <button class="btn-primary mt" id="kidsStartBtn" style="font-size:18px; padding:18px;">👶 ようじモードで はじめる！</button>
       </div>
       <button class="btn-primary btn-gold mt" id="toShopBtn">🛒 ショップへ</button>
+      <button class="btn-primary btn-ghost mt" id="toStickerBtn">📒 シールちょう</button>
     </div>
+  </div>
+
+  <!-- ===== STICKER BOOK ===== -->
+  <div id="screen-stickers" class="screen">
+    <div class="shop-head"><h2>📒 シールちょう</h2><span class="coinhud">🪙 <span id="stickerCoins">0</span></span></div>
+    <div id="stickerSummary"></div>
+    <div id="stickerList" class="shop-list"></div>
+    <div class="shop-foot"><span></span><button class="btn-primary btn-ghost" id="stickerBackBtn" style="width:auto; padding:9px 20px;">もどる</button></div>
   </div>
 
   <!-- ===== BATTLE ===== -->
@@ -1612,6 +1641,421 @@ const CROSS = [
   {a:"出",w:["出口","外出","出発","提出"]},
 ];
 
+/* ===== 英語・理科・社会（学年帯ごとの4択）===== a:1〜2年 b:3〜4年 c:5〜6年 */
+const QBANK = {
+  english: {
+    a:[
+      {q:"「いぬ」は 英語で？",a:"dog",d:["cat","pig","cow"]},
+      {q:"「ねこ」は 英語で？",a:"cat",d:["dog","fox","bird"]},
+      {q:"「あか」は 英語で？",a:"red",d:["blue","green","black"]},
+      {q:"「あお」は 英語で？",a:"blue",d:["red","yellow","white"]},
+      {q:"「りんご」は 英語で？",a:"apple",d:["banana","orange","grape"]},
+      {q:"「1」は 英語で？",a:"one",d:["two","three","ten"]},
+      {q:"「3」は 英語で？",a:"three",d:["two","four","five"]},
+      {q:"「dog」の いみは？",a:"いぬ",d:["ねこ","うし","ぶた"]},
+      {q:"「cat」の いみは？",a:"ねこ",d:["いぬ","とり","うま"]},
+      {q:"「red」の いみは？",a:"あか",d:["あお","きいろ","みどり"]},
+      {q:"「sun」の いみは？",a:"たいよう",d:["つき","ほし","くも"]},
+      {q:"「book」の いみは？",a:"ほん",d:["えんぴつ","つくえ","かばん"]},
+    ],
+    b:[
+      {q:"「Thank you.」の いみは？",a:"ありがとう",d:["こんにちは","さようなら","ごめんね"]},
+      {q:"「Good morning.」の いみは？",a:"おはよう",d:["こんばんは","おやすみ","またね"]},
+      {q:"「How are you?」の いみは？",a:"げんき？",d:["なまえは？","いくつ？","どこ？"]},
+      {q:"「みどり」は 英語で？",a:"green",d:["blue","brown","pink"]},
+      {q:"「げつようび」は 英語で？",a:"Monday",d:["Sunday","Friday","Tuesday"]},
+      {q:"「あめ(天気)」は 英語で？",a:"rainy",d:["sunny","cloudy","snowy"]},
+      {q:"「rabbit」の いみは？",a:"うさぎ",d:["ねずみ","きつね","くま"]},
+      {q:"「water」の いみは？",a:"みず",d:["ひ","かぜ","つち"]},
+      {q:"「happy」の いみは？",a:"うれしい",d:["かなしい","おこった","ねむい"]},
+      {q:"「あたま」は 英語で？",a:"head",d:["hand","foot","ear"]},
+      {q:"「7」は 英語で？",a:"seven",d:["six","eight","nine"]},
+      {q:"「fish」の いみは？",a:"さかな",d:["とり","むし","はな"]},
+    ],
+    c:[
+      {q:"「What time is it?」の いみは？",a:"何時ですか",d:["何歳ですか","どこですか","だれですか"]},
+      {q:"「I like apples.」の いみは？",a:"りんごが好き",d:["りんごが嫌い","りんごを食べた","りんごを買う"]},
+      {q:"「teacher」の いみは？",a:"先生",d:["医者","学生","店員"]},
+      {q:"「station」の いみは？",a:"駅",d:["病院","学校","公園"]},
+      {q:"「summer」の いみは？",a:"夏",d:["春","秋","冬"]},
+      {q:"「9月」は 英語で？",a:"September",d:["November","December","August"]},
+      {q:"「やさい」は 英語で？",a:"vegetable",d:["fruit","meat","fish"]},
+      {q:"「big」の 反対は？",a:"small",d:["long","tall","fast"]},
+      {q:"「doctor」の いみは？",a:"医者",d:["看護師","先生","警察官"]},
+      {q:"「Wednesday」の いみは？",a:"水曜日",d:["火曜日","木曜日","土曜日"]},
+      {q:"「右」は 英語で？",a:"right",d:["left","up","down"]},
+      {q:"「Where is the library?」の いみは？",a:"図書館はどこ？",d:["図書館は何時？","図書館は好き？","図書館へ行こう"]},
+    ],
+  },
+  science: {
+    a:[
+      {q:"チョウの 子ども（よう虫）は？",a:"あおむし",d:["おたまじゃくし","さなぎだけ","たまごだけ"]},
+      {q:"カエルの 子どもは？",a:"おたまじゃくし",d:["あおむし","よう虫","さなぎ"]},
+      {q:"ひまわりは 何に むかって さく？",a:"たいよう",d:["つき","ほし","くも"]},
+      {q:"テントウムシの あしは 何本？",a:"6本",d:["4本","8本","10本"]},
+      {q:"たねを まくと まず 出るのは？",a:"め（芽）",d:["はな","み","えだ"]},
+      {q:"だんごむしは さわると どうなる？",a:"まるくなる",d:["とぶ","ひかる","なく"]},
+      {q:"あさがおが よく さくのは？",a:"なつ",d:["ふゆ","あきのよる","はるのゆき"]},
+      {q:"水を ひやすと できるのは？",a:"こおり",d:["ゆげ","あわ","しお"]},
+      {q:"かげが できるのは 何が あるから？",a:"たいよう（光）",d:["かぜ","水","音"]},
+      {q:"アリは どこに すんでいる？",a:"土の中",d:["木の上だけ","水の中","空"]},
+    ],
+    b:[
+      {q:"こん虫の あしは 何本？",a:"6本",d:["4本","8本","10本"]},
+      {q:"こん虫の からだは いくつに 分かれる？",a:"3つ",d:["2つ","4つ","1つ"]},
+      {q:"じしゃくに つくのは？",a:"鉄（てつ）",d:["木","紙","ガラス"]},
+      {q:"豆電球を 光らせるのに 必要なのは？",a:"かん電池",d:["じしゃく","水","紙"]},
+      {q:"水が こおると 何に なる？",a:"氷",d:["水じょうき","湯","あわ"]},
+      {q:"水が ふっとうすると 出るのは？",a:"水じょうき",d:["氷","油","けむり"]},
+      {q:"太陽は どちらから のぼる？",a:"東",d:["西","南","北"]},
+      {q:"温度を はかる どうぐは？",a:"温度計",d:["はかり","ものさし","方位じしん"]},
+      {q:"ホウセンカが 水を すいあげるのは？",a:"根",d:["葉","花","実"]},
+      {q:"電気を よく とおすのは？",a:"金ぞく",d:["ゴム","木","プラスチック"]},
+      {q:"こん虫の はねは どこに ついている？",a:"むね",d:["あたま","はら","あし"]},
+    ],
+    c:[
+      {q:"ものが 燃えるのに 必要な 気体は？",a:"酸素",d:["二酸化炭素","ちっ素","水素"]},
+      {q:"植物が 日光で 養分を つくる はたらきは？",a:"光合成",d:["呼吸","じょう散","発芽"]},
+      {q:"心臓の おもな はたらきは？",a:"血液を 送り出す",d:["空気を すう","食べ物を 消化","尿を つくる"]},
+      {q:"月は 何の まわりを 回っている？",a:"地球",d:["太陽","火星","金星"]},
+      {q:"赤いリトマス紙が 青に なるのは？",a:"アルカリ性",d:["酸性","中性","食塩水"]},
+      {q:"食べ物の 養分を 吸収する おもな 場所は？",a:"小腸",d:["心臓","肺","じん臓"]},
+      {q:"二酸化炭素が とけた 水よう液は？",a:"炭酸水",d:["食塩水","石灰水","アンモニア水"]},
+      {q:"地層から 出る 大昔の 生き物の あとは？",a:"化石",d:["結しょう","よう岩","鉱石"]},
+      {q:"電磁石を 強くするには コイルの まき数を？",a:"増やす",d:["減らす","半分にする","関係ない"]},
+      {q:"人が いきを すって 体に とり入れるのは？",a:"酸素",d:["二酸化炭素","水素","ちっ素だけ"]},
+    ],
+  },
+  social: {
+    a:[
+      {q:"火事のときに 来るのは？",a:"消防車",d:["パトカー","ゴミ収集車","バス"]},
+      {q:"手紙を 出す ところは？",a:"ゆうびんきょく",d:["びょういん","がっこう","こうばん"]},
+      {q:"しんごう「とまれ」は 何色？",a:"赤",d:["青","黄","緑"]},
+      {q:"こまったとき 行く おまわりさんの ところは？",a:"こうばん",d:["スーパー","えき","こうえん"]},
+      {q:"バスや 電車で 大事なのは？",a:"ならんで のる",d:["はしる","おす","さけぶ"]},
+      {q:"本を かりる ところは？",a:"としょかん",d:["ゆうびんきょく","えき","こうじょう"]},
+      {q:"おかいものを する ところは？",a:"スーパー",d:["びょういん","としょかん","こうえん"]},
+      {q:"おうだんほどうは いつ わたる？",a:"青しんごう",d:["赤しんごう","車が来るとき","よるだけ"]},
+    ],
+    b:[
+      {q:"地図記号「〒」は？",a:"ゆうびんきょく",d:["がっこう","びょういん","こうばん"]},
+      {q:"地図記号「卍」は？",a:"お寺",d:["神社","学校","図書館"]},
+      {q:"火事・救急車を よぶ 電話番号は？",a:"119",d:["110","117","118"]},
+      {q:"けいさつを よぶ 電話番号は？",a:"110",d:["119","104","100"]},
+      {q:"日本で いちばん 面積が 大きい 都道府県は？",a:"北海道",d:["東京都","岩手県","新潟県"]},
+      {q:"わたしたちが 飲む 水を つくるのは？",a:"じょう水場",d:["下水しょり場","せいそう工場","発電所"]},
+      {q:"もえるゴミを しょりするのは？",a:"せいそう工場",d:["じょう水場","畑","港"]},
+      {q:"地図で ふつう 上は どの方位？",a:"北",d:["南","東","西"]},
+      {q:"消防の しごとは？",a:"火を 消す",d:["手紙を くばる","水を きれいにする","ゴミを あつめる"]},
+      {q:"スーパーの 品物は どこから 来る？",a:"いろいろな 産地",d:["お店で 作る","海の中","空から"]},
+    ],
+    c:[
+      {q:"江戸幕府を 開いたのは？",a:"徳川家康",d:["豊臣秀吉","織田信長","源頼朝"]},
+      {q:"鎌倉幕府を 開いたのは？",a:"源頼朝",d:["徳川家康","足利尊氏","平清盛"]},
+      {q:"日本で いちばん 高い 山は？",a:"富士山",d:["北岳","立山","御嶽山"]},
+      {q:"日本の 首都は？",a:"東京",d:["大阪","京都","横浜"]},
+      {q:"国の 法律を つくる ところは？",a:"国会",d:["内閣","裁判所","市役所"]},
+      {q:"日本国憲法の 三原則の 一つは？",a:"平和主義",d:["軍国主義","身分制度","鎖国"]},
+      {q:"アメリカの 首都は？",a:"ワシントン",d:["ニューヨーク","ロサンゼルス","ロンドン"]},
+      {q:"日本で いちばん 大きい 湖は？",a:"びわ湖",d:["かすみがうら","さろま湖","十和田湖"]},
+      {q:"「学問のすゝめ」を 書いたのは？",a:"福沢諭吉",d:["野口英世","夏目漱石","西郷隆盛"]},
+      {q:"裁判を 行う ところは？",a:"裁判所",d:["国会","内閣","県庁"]},
+      {q:"選挙で 投票できるのは 何歳から？",a:"18歳",d:["15歳","20歳","25歳"]},
+    ],
+  },
+};
+const SUBJ_TAG = { english:"🔤えいご", science:"🔬りか", social:"🌏しゃかい" };
+function bandOf(g){ return g<=2?"a":g<=4?"b":"c"; }
+function getSubjectQuestion(subject, grade){
+  const arr = QBANK[subject][bandOf(grade)];
+  const it = pickOne(arr);
+  return { q:it.q, ans:it.a, options:shuffle([it.a, ...it.d]), tag:SUBJ_TAG[subject] };
+}
+function renderSubjectQuestion(){
+  const it = getSubjectQuestion(state.subject, state.grade);
+  state.curAnswer = it.ans; state.curQ = it.q;
+  setMessage("クイズ！ こたえをえらんでね");
+  $("qtag").textContent = it.tag;
+  const qm=$("quizMain"); qm.className="quiz-main word"; qm.textContent = it.q;
+  $("quizHint").textContent = "";
+  $("writeArea").style.display="none"; $("mathPad").style.display="none";
+  const box=$("choices"); box.style.display="grid"; box.innerHTML="";
+  it.options.forEach(opt=>{ const b=document.createElement("button"); b.className="choice subj"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===it.ans,it.ans); box.appendChild(b); });
+  startTimer();
+}
+/* ===== 問題を追加（バリエーション増量）===== */
+QBANK.english.a.push(
+  {q:"「2」は 英語で？",a:"two",d:["one","three","ten"]},
+  {q:"「5」は 英語で？",a:"five",d:["four","six","nine"]},
+  {q:"「きいろ」は 英語で？",a:"yellow",d:["white","black","brown"]},
+  {q:"「しろ」は 英語で？",a:"white",d:["black","blue","red"]},
+  {q:"「くろ」は 英語で？",a:"black",d:["white","green","blue"]},
+  {q:"「とり」は 英語で？",a:"bird",d:["fish","frog","mouse"]},
+  {q:"「さかな」は 英語で？",a:"fish",d:["bird","bear","duck"]},
+  {q:"「うし」は 英語で？",a:"cow",d:["pig","dog","cat"]},
+  {q:"「banana」の いみは？",a:"バナナ",d:["りんご","みかん","ぶどう"]},
+  {q:"「milk」の いみは？",a:"ぎゅうにゅう",d:["みず","ジュース","おちゃ"]},
+  {q:"「egg」の いみは？",a:"たまご",d:["パン","ごはん","にく"]},
+  {q:"「hand」の いみは？",a:"て",d:["あし","め","みみ"]},
+  {q:"「moon」の いみは？",a:"つき",d:["たいよう","ほし","そら"]},
+);
+QBANK.english.b.push(
+  {q:"「Good night.」の いみは？",a:"おやすみ",d:["おはよう","こんにちは","ありがとう"]},
+  {q:"「I'm sorry.」の いみは？",a:"ごめんなさい",d:["ありがとう","だいじょうぶ","またね"]},
+  {q:"「big」の いみは？",a:"大きい",d:["小さい","はやい","あつい"]},
+  {q:"「small」の いみは？",a:"小さい",d:["大きい","ながい","たかい"]},
+  {q:"「Sunday」の いみは？",a:"日曜日",d:["月曜日","土曜日","金曜日"]},
+  {q:"「January」の いみは？",a:"1月",d:["6月","7月","12月"]},
+  {q:"「elephant」の いみは？",a:"ぞう",d:["きりん","ライオン","さる"]},
+  {q:"「eat」の いみは？",a:"食べる",d:["飲む","見る","走る"]},
+  {q:"「run」の いみは？",a:"走る",d:["歩く","泳ぐ","とぶ"]},
+  {q:"「あし」は 英語で？",a:"foot",d:["hand","head","eye"]},
+  {q:"「学校」は 英語で？",a:"school",d:["park","shop","house"]},
+  {q:"「ねこ(複数) cats」の もとは？",a:"cat",d:["dog","car","cup"]},
+);
+QBANK.english.c.push(
+  {q:"「breakfast」の いみは？",a:"朝食",d:["昼食","夕食","おやつ"]},
+  {q:"「October」の いみは？",a:"10月",d:["8月","11月","12月"]},
+  {q:"「I went to the park.」の いみは？",a:"公園へ 行った",d:["公園へ 行く","公園が 好き","公園は どこ"]},
+  {q:"「fast」の 反対は？",a:"slow",d:["long","short","high"]},
+  {q:"「long」の 反対は？",a:"short",d:["small","slow","old"]},
+  {q:"「hospital」の いみは？",a:"病院",d:["学校","駅","図書館"]},
+  {q:"「police officer」の いみは？",a:"警察官",d:["消防士","医者","先生"]},
+  {q:"「winter」の いみは？",a:"冬",d:["夏","春","秋"]},
+  {q:"「左」は 英語で？",a:"left",d:["right","up","down"]},
+  {q:"「What's your name?」の いみは？",a:"名前は何ですか",d:["何歳ですか","元気ですか","どこですか"]},
+  {q:"「baseball」の いみは？",a:"野球",d:["サッカー","水泳","テニス"]},
+  {q:"「Monday」の つぎの 曜日は？",a:"Tuesday",d:["Sunday","Wednesday","Friday"]},
+);
+QBANK.science.a.push(
+  {q:"あさがおの 花は いつ さく？",a:"あさ",d:["よる","ま夜中","ゆうがた"]},
+  {q:"メダカは どこで くらす？",a:"水の中",d:["土の中","空","木の上"]},
+  {q:"はちは 花の 何を あつめる？",a:"みつ",d:["は","ね","いし"]},
+  {q:"風で とんで いく たねは？",a:"たんぽぽ",d:["どんぐり","くり","りんご"]},
+  {q:"こん虫の たまごから 出るのは？",a:"よう虫",d:["せい虫","さなぎ","花"]},
+  {q:"日なたと 日かげ、あたたかいのは？",a:"日なた",d:["日かげ","同じ","夜"]},
+  {q:"水たまりは 晴れた日 どうなる？",a:"かわく",d:["ふえる","こおる","色がつく"]},
+  {q:"ダンゴムシが すんでいる ところは？",a:"石や 落ち葉の下",d:["空","池の中","花の中"]},
+  {q:"タンポポの わた毛は 何で とぶ？",a:"風",d:["水","火","電気"]},
+  {q:"ホタルは いつ 光る？",a:"夜",d:["昼","あさだけ","一日中"]},
+);
+QBANK.science.b.push(
+  {q:"豆電球と かん電池を つないだ 輪を？",a:"回路",d:["電池","電球","どう線だけ"]},
+  {q:"じしゃくの ちがう極どうしは？",a:"引き合う",d:["しりぞけ合う","何もしない","ひかる"]},
+  {q:"じしゃくの 同じ極どうしは？",a:"しりぞけ合う",d:["引き合う","くっつく","ひかる"]},
+  {q:"ゴムを のばすほど 車は？",a:"遠くへ 進む",d:["近くで 止まる","動かない","横へ"]},
+  {q:"かげは 太陽の どちら側に できる？",a:"反対側",d:["同じ側","真上","できない"]},
+  {q:"こん虫の 体の 3つは 頭・むね・と？",a:"はら",d:["あし","はね","しっぽ"]},
+  {q:"温度計は どこを 読む？",a:"えきの先",d:["いちばん上","いちばん下","まん中"]},
+  {q:"月は 自分で 光っている？",a:"いいえ",d:["はい","電気で","ときどき"]},
+  {q:"水を 冷やし続けると？",a:"氷に なる",d:["湯気が出る","あつくなる","あわが出る"]},
+  {q:"風車は 何で 回る？",a:"風",d:["水だけ","電池だけ","光"]},
+);
+QBANK.science.c.push(
+  {q:"だ液は 何を 消化する？",a:"でんぷん",d:["しぼう","たんぱく質","ビタミン"]},
+  {q:"血液中で 酸素を 運ぶのは？",a:"赤血球",d:["白血球","けっしょう","血小板"]},
+  {q:"水よう液を 蒸発させると 出るのは？",a:"とけていた もの",d:["水だけ","空気","何も出ない"]},
+  {q:"石灰水に 二酸化炭素を 入れると？",a:"白くにごる",d:["赤くなる","青くなる","水になる"]},
+  {q:"てこの 支点・力点・もう一つは？",a:"作用点",d:["中心点","回転点","頂点"]},
+  {q:"電気を つくる そうちは？",a:"発電機",d:["かん電池","じしゃく","電球"]},
+  {q:"地層は 何が つもって できる？",a:"どろ・すな・れき",d:["空気","水だけ","光"]},
+  {q:"植物が 根から すい上げるのは？",a:"水と 養分",d:["空気","光","土だけ"]},
+  {q:"心臓から 送り出された 血液が 通るのは？",a:"血管",d:["気管","食道","しん経"]},
+  {q:"月食が おきるのは 太陽・地球・月が どうなる時？",a:"一直線",d:["バラバラ","直角","近づく"]},
+);
+QBANK.social.a.push(
+  {q:"おうだんほどうの 前で まず すること？",a:"右左を 見る",d:["走る","目を つぶる","さわぐ"]},
+  {q:"ゴミは どうやって 出す？",a:"分けて 出す",d:["全部 一緒","道に すてる","川に ながす"]},
+  {q:"駅で 電車を 待つ ときは？",a:"白線の 内がわ",d:["線路に 近づく","走る","おしあう"]},
+  {q:"買い物の お金を はらう ところは？",a:"レジ",d:["入口","トイレ","ちゅう車場"]},
+  {q:"こうえんで 大事な ことは？",a:"みんなで なかよく",d:["ひとりじめ","ゴミをすてる","花をぬく"]},
+  {q:"きゅうきゅう車を よぶのは？",a:"大きな けが・病気",d:["ねむい とき","おなかすいた","たいくつ"]},
+  {q:"火を つかう ときは？",a:"大人と 一緒に",d:["ひとりで","ねながら","水の中で"]},
+  {q:"こうばんに いるのは？",a:"おまわりさん",d:["先生","お医者さん","てんいんさん"]},
+);
+QBANK.social.b.push(
+  {q:"地図記号「文」は？",a:"学校",d:["病院","図書館","工場"]},
+  {q:"地図記号「鳥居」は？",a:"神社",d:["お寺","市役所","公園"]},
+  {q:"日本の 都道府県は いくつ？",a:"47",d:["43","50","39"]},
+  {q:"日本で いちばん 小さい 都道府県は？",a:"香川県",d:["東京都","大阪府","沖縄県"]},
+  {q:"下水を きれいにするのは？",a:"下水しょり場",d:["じょう水場","発電所","せいそう工場"]},
+  {q:"スーパーで ねだんが 書いてあるのは？",a:"ねふだ",d:["レシート","ちらし","地図"]},
+  {q:"昔の 道具「せんたく板」は 何に 使った？",a:"せんたく",d:["りょうり","そうじ","勉強"]},
+  {q:"方位を 調べる どうぐは？",a:"方位じしん",d:["温度計","ものさし","時計"]},
+  {q:"日本の まわりに あるのは？",a:"海",d:["さばく","氷の大地","大きな川だけ"]},
+  {q:"地図記号「Y(消防)」… 火を消す しごとは？",a:"消防",d:["けいさつ","ゆうびん","ゴミ収集"]},
+);
+QBANK.social.c.push(
+  {q:"室町幕府を 開いたのは？",a:"足利尊氏",d:["徳川家康","源頼朝","織田信長"]},
+  {q:"鉄砲を 日本に 伝えたのは？",a:"ポルトガル人",d:["アメリカ人","中国人","インド人"]},
+  {q:"日本で 米作りが さかんなのは？",a:"東北・北陸",d:["沖縄","東京の都心","山の頂上"]},
+  {q:"内閣の トップを 何という？",a:"内閣総理大臣",d:["天皇","国会議長","知事"]},
+  {q:"日本の お金の たんいは？",a:"円",d:["ドル","ウォン","ユーロ"]},
+  {q:"オリンピックは 何年ごと？",a:"4年",d:["2年","1年","10年"]},
+  {q:"地球温暖化の 原因と される 気体は？",a:"二酸化炭素",d:["酸素","ちっ素","水"]},
+  {q:"裁判で 国民が 参加する せいどは？",a:"裁判員せいど",d:["選挙","ぎかい","じょうれい"]},
+  {q:"聖徳太子が 定めた きまりは？",a:"十七条の憲法",d:["大日本帝国憲法","日本国憲法","御成敗式目"]},
+  {q:"世界の 人々が 協力する 国際組織は？",a:"国際連合(国連)",d:["国会","内閣","県庁"]},
+);
+/* ===== さらに増量 ===== */
+QBANK.english.a.push(
+  {q:"「4」は 英語で？",a:"four",d:["three","five","eight"]},
+  {q:"「6」は 英語で？",a:"six",d:["five","seven","nine"]},
+  {q:"「8」は 英語で？",a:"eight",d:["six","seven","nine"]},
+  {q:"「10」は 英語で？",a:"ten",d:["nine","two","twelve"]},
+  {q:"「green」の いみは？",a:"みどり",d:["あか","きいろ","くろ"]},
+  {q:"「pig」の いみは？",a:"ぶた",d:["うし","いぬ","うま"]},
+  {q:"「bear」の いみは？",a:"くま",d:["うさぎ","きつね","ねずみ"]},
+  {q:"「star」の いみは？",a:"ほし",d:["つき","たいよう","くも"]},
+  {q:"「tree」の いみは？",a:"き",d:["はな","くさ","いし"]},
+  {q:"「mouth」の いみは？",a:"くち",d:["はな","め","て"]},
+  {q:"「みず」は 英語で？",a:"water",d:["fire","milk","juice"]},
+  {q:"「ひ(火)」は 英語で？",a:"fire",d:["water","wind","ice"]},
+  {q:"「ほし」は 英語で？",a:"star",d:["moon","sun","sky"]},
+);
+QBANK.english.b.push(
+  {q:"「Saturday」の いみは？",a:"土曜日",d:["日曜日","金曜日","木曜日"]},
+  {q:"「Friday」の いみは？",a:"金曜日",d:["木曜日","土曜日","水曜日"]},
+  {q:"「December」の いみは？",a:"12月",d:["10月","11月","9月"]},
+  {q:"「March」の いみは？",a:"3月",d:["5月","4月","8月"]},
+  {q:"「lion」の いみは？",a:"ライオン",d:["とら","くま","おおかみ"]},
+  {q:"「monkey」の いみは？",a:"さる",d:["ぞう","きりん","しまうま"]},
+  {q:"「walk」の いみは？",a:"歩く",d:["走る","泳ぐ","食べる"]},
+  {q:"「swim」の いみは？",a:"泳ぐ",d:["走る","歩く","とぶ"]},
+  {q:"「あつい(暑い)」は 英語で？",a:"hot",d:["cold","cool","warm"]},
+  {q:"「さむい」は 英語で？",a:"cold",d:["hot","warm","wet"]},
+  {q:"「ともだち」は 英語で？",a:"friend",d:["teacher","family","baby"]},
+  {q:"「いえ(家)」は 英語で？",a:"house",d:["school","park","shop"]},
+  {q:"「ねこ」を 英語で かくと？",a:"cat",d:["cap","cut","cot"]},
+);
+QBANK.english.c.push(
+  {q:"「April」の いみは？",a:"4月",d:["8月","6月","9月"]},
+  {q:"「November」の いみは？",a:"11月",d:["9月","12月","10月"]},
+  {q:"「lunch」の いみは？",a:"昼食",d:["朝食","夕食","おやつ"]},
+  {q:"「dinner」の いみは？",a:"夕食",d:["朝食","昼食","おやつ"]},
+  {q:"「new」の 反対は？",a:"old",d:["young","big","high"]},
+  {q:"「up」の 反対は？",a:"down",d:["left","right","top"]},
+  {q:"「soccer」の いみは？",a:"サッカー",d:["野球","水泳","テニス"]},
+  {q:"「How much is it?」の いみは？",a:"いくらですか",d:["何時ですか","どこですか","だれですか"]},
+  {q:"「science」の いみは？",a:"理科",d:["算数","社会","国語"]},
+  {q:"「music」の いみは？",a:"音楽",d:["図工","体育","家庭科"]},
+  {q:"「spring」の いみは？",a:"春",d:["夏","秋","冬"]},
+  {q:"「Thursday」の いみは？",a:"木曜日",d:["火曜日","水曜日","金曜日"]},
+);
+QBANK.science.a.push(
+  {q:"トンボの あしは 何本？",a:"6本",d:["4本","8本","2本"]},
+  {q:"カブトムシの エサは？",a:"木の しる",d:["石","土","水だけ"]},
+  {q:"チューリップは 何で 植える？",a:"球根（きゅうこん）",d:["たねだけ","は","えだ"]},
+  {q:"金魚は どこで かう？",a:"水そう",d:["かご","土の中","空"]},
+  {q:"てんとうむしは 何を 食べる？",a:"アブラムシ",d:["木","石","花だけ"]},
+  {q:"こおりが とけると？",a:"水に なる",d:["けむり","石","しお"]},
+  {q:"ありの 行列は どこへ つづく？",a:"えさ（や 巣）",d:["空","池","木のてっぺん"]},
+  {q:"花が さいた あとに できるのは？",a:"み・たね",d:["ね","は","えだ"]},
+  {q:"日なたの 地面は 日かげより？",a:"あたたかい",d:["つめたい","同じ","こおる"]},
+  {q:"あおむしは 大きく なると 何に なる？",a:"さなぎ→チョウ",d:["カエル","セミ","トンボ"]},
+);
+QBANK.science.b.push(
+  {q:"方位じしんの 色のついた はりは どこを さす？",a:"北",d:["南","東","西"]},
+  {q:"水・氷・水じょうき、ぜんぶ もとは？",a:"水",d:["空気","油","しお"]},
+  {q:"鉄を 引きつける 力を 何という？",a:"じりょく（磁力）",d:["電気","重力","風"]},
+  {q:"風が 強いほど ほかけ車は？",a:"速く 進む",d:["止まる","ゆっくり","後ろへ"]},
+  {q:"昼に 高く なる 星は？",a:"太陽",d:["北極星","月","金星"]},
+  {q:"電気を とおさないのは？",a:"プラスチック",d:["鉄","どう","アルミ"]},
+  {q:"こん虫の 目の つくりは？",a:"ふくがん（複眼）",d:["たんがん","らんし","しょっかく"]},
+  {q:"豆電球が つかない とき しらべるのは？",a:"電池の 向き・つなぎ",d:["天気","時こく","色"]},
+  {q:"温度が 高いほど 水は？",a:"じょう発しやすい",d:["こおりやすい","重くなる","色がつく"]},
+  {q:"こん虫の はねと あしが ついているのは？",a:"むね",d:["あたま","はら","しっぽ"]},
+);
+QBANK.science.c.push(
+  {q:"でんぷんが あるか 調べる 薬は？",a:"ヨウ素液",d:["石灰水","リトマス紙","食塩水"]},
+  {q:"酸性の 水よう液は 青いリトマス紙を？",a:"赤に する",d:["青のまま","消す","白にする"]},
+  {q:"電磁石は 電流を 切ると？",a:"磁石でなくなる",d:["ずっと磁石","赤くなる","光る"]},
+  {q:"地震や 火山で できる 大地の ずれは？",a:"断層",d:["地層","化石","結しょう"]},
+  {q:"てこで 手ごたえが 軽いのは 支点から 力点が？",a:"遠い",d:["近い","真上","ない"]},
+  {q:"植物が 水を 葉から 出す はたらきは？",a:"じょう散",d:["光合成","呼吸","発芽"]},
+  {q:"心臓から 全身へ 血を 送る 血管は？",a:"動脈",d:["静脈","毛細血管","気管"]},
+  {q:"月の 表面の くぼみを 何という？",a:"クレーター",d:["こうざん","みずうみ","へいや"]},
+  {q:"水を 電気で 分けると できるのは？",a:"水素と 酸素",d:["二酸化炭素","ちっ素","食塩"]},
+  {q:"血液中で 体を まもる はたらきは？",a:"白血球",d:["赤血球","血小板","けっしょう"]},
+);
+QBANK.social.a.push(
+  {q:"電車で おとしよりに？",a:"せきを ゆずる",d:["むしする","おす","はしる"]},
+  {q:"火事を けすのは？",a:"消防士",d:["けいさつ","ゆうびんやさん","てんいん"]},
+  {q:"パトカーに のっているのは？",a:"けいさつかん",d:["しょうぼうし","いしゃ","せんせい"]},
+  {q:"手を あらうのは いつ？",a:"ごはんの まえ",d:["あそぶ まえだけ","ねる ときだけ","あらわない"]},
+  {q:"まちを きれいに するには？",a:"ゴミを ひろう",d:["ゴミを すてる","おとす","かくす"]},
+  {q:"こまった ときは だれに 言う？",a:"おとな（先生）",d:["だれにも言わない","にげる","ないしょ"]},
+  {q:"こうつうルールを まもるのは？",a:"あんぜんの ため",d:["はやさの ため","おかねの ため","あそびの ため"]},
+  {q:"ともだちと なかよく するには？",a:"じゅんばんを まもる",d:["ひとりじめ","おす","わるぐち"]},
+);
+QBANK.social.b.push(
+  {q:"地図記号「文」は？",a:"学校",d:["病院","図書館","工場"]},
+  {q:"地図記号「はぐるま」は？",a:"工場",d:["田","学校","神社"]},
+  {q:"日本の いちばん 北の 地方は？",a:"北海道地方",d:["九州地方","四国地方","関東地方"]},
+  {q:"米や 野菜を 作る しごとの 人は？",a:"農家",d:["漁師","大工","教師"]},
+  {q:"魚を とる しごとの 人は？",a:"漁師（りょうし）",d:["農家","大工","教師"]},
+  {q:"昔の あかりは？",a:"ろうそく・ランプ",d:["けいこうとう","LED","でんき"]},
+  {q:"商品の さんち（どこで作ったか）は どこで わかる？",a:"ラベル（表示）",d:["かべ","てんいんのふく","かんばんの色"]},
+  {q:"火事を ふせぐ ために 町に あるのは？",a:"消火せん",d:["ポスト","ベンチ","看板"]},
+  {q:"地図で ふつう 上は どの方位？",a:"北",d:["南","東","西"]},
+  {q:"日本は まわりを 何に かこまれている？",a:"海",d:["さばく","氷の大地","大きな川"]},
+);
+QBANK.social.c.push(
+  {q:"織田信長の あとを ついで 天下統一したのは？",a:"豊臣秀吉",d:["徳川家康","明智光秀","武田信玄"]},
+  {q:"今の 元号は？",a:"令和",d:["平成","昭和","大正"]},
+  {q:"日本で 最初の 元号は？",a:"大化",d:["明治","令和","平成"]},
+  {q:"国の 政治を 行う（行政）のは？",a:"内閣",d:["国会","裁判所","県庁"]},
+  {q:"日本の いちばん 南の 県は？",a:"沖縄県",d:["北海道","鹿児島県","東京都"]},
+  {q:"古墳時代の 大きな はかは？",a:"前方後円墳",d:["ピラミッド","お城","神社"]},
+  {q:"江戸時代に 外国との 行き来を 制限したのは？",a:"鎖国",d:["開国","参勤交代","文明開化"]},
+  {q:"明治維新の 中心に なった藩は？",a:"薩摩・長州",d:["江戸・京都","大阪・名古屋","北海道"]},
+  {q:"国際連合（国連）の 本部が ある国は？",a:"アメリカ",d:["日本","イギリス","フランス"]},
+  {q:"聖徳太子が 定めた きまりは？",a:"十七条の憲法",d:["日本国憲法","御成敗式目","大宝律令"]},
+);
+/* ===== 英語リスニング ===== */
+const LISTEN = {
+  a:[
+    {en:"apple",a:"りんご",d:["ねこ","あか","みず"]},{en:"cat",a:"ねこ",d:["いぬ","とり","くるま"]},
+    {en:"dog",a:"いぬ",d:["ねこ","うし","ぶた"]},{en:"red",a:"あか",d:["あお","きいろ","しろ"]},
+    {en:"blue",a:"あお",d:["あか","みどり","くろ"]},{en:"one",a:"1",d:["2","3","10"]},
+    {en:"three",a:"3",d:["2","4","8"]},{en:"sun",a:"たいよう",d:["つき","ほし","そら"]},
+    {en:"book",a:"ほん",d:["つくえ","かばん","えんぴつ"]},{en:"fish",a:"さかな",d:["とり","むし","はな"]},
+    {en:"milk",a:"ぎゅうにゅう",d:["みず","おちゃ","ジュース"]},{en:"hand",a:"て",d:["あし","め","みみ"]},
+  ],
+  b:[
+    {en:"rabbit",a:"うさぎ",d:["ねずみ","きつね","くま"]},{en:"green",a:"みどり",d:["あお","ちゃいろ","ピンク"]},
+    {en:"water",a:"みず",d:["ひ","かぜ","つち"]},{en:"happy",a:"うれしい",d:["かなしい","ねむい","おこった"]},
+    {en:"thank you",a:"ありがとう",d:["ごめんね","こんにちは","さようなら"]},{en:"good morning",a:"おはよう",d:["おやすみ","こんばんは","またね"]},
+    {en:"head",a:"あたま",d:["て","あし","みみ"]},{en:"seven",a:"7",d:["6","8","9"]},
+    {en:"elephant",a:"ぞう",d:["きりん","さる","ライオン"]},{en:"school",a:"がっこう",d:["こうえん","えき","みせ"]},
+    {en:"Monday",a:"げつようび",d:["にちようび","どようび","きんようび"]},{en:"rainy",a:"あめ",d:["はれ","くもり","ゆき"]},
+  ],
+  c:[
+    {en:"teacher",a:"先生",d:["医者","学生","店員"]},{en:"station",a:"駅",d:["病院","学校","公園"]},
+    {en:"summer",a:"夏",d:["春","秋","冬"]},{en:"What time is it?",a:"何時ですか",d:["何歳ですか","どこですか","だれですか"]},
+    {en:"I like apples.",a:"りんごが好き",d:["りんごが嫌い","みかんが好き","ぶどうを買う"]},{en:"doctor",a:"医者",d:["看護師","先生","警察官"]},
+    {en:"vegetable",a:"やさい",d:["くだもの","にく","さかな"]},{en:"breakfast",a:"朝食",d:["昼食","夕食","おやつ"]},
+    {en:"baseball",a:"野球",d:["サッカー","テニス","水泳"]},{en:"hospital",a:"病院",d:["図書館","駅","学校"]},
+    {en:"Where is the station?",a:"駅はどこ？",d:["駅は何時？","駅は好き？","駅へ行こう"]},{en:"September",a:"9月",d:["11月","12月","8月"]},
+  ],
+};
+function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=0.85; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+function renderListeningQuestion(){
+  const it = pickOne(LISTEN[bandOf(state.grade)]);
+  state.curAnswer = it.a; state.curQ = "🔊 "+it.en;
+  setMessage("よく きいて こたえてね");
+  $("qtag").textContent="🔊リスニング";
+  const qm=$("quizMain"); qm.className="quiz-main";
+  qm.innerHTML=`<button id="replayBtn" style="font-size:48px; background:none; border:none; cursor:pointer; line-height:1;">🔊</button>`;
+  $("quizHint").textContent="きこえた 英語の いみは？（🔊で もう一回）";
+  $("writeArea").style.display="none"; $("mathPad").style.display="none";
+  $("replayBtn").onclick=()=>{ speak(it.en); };
+  speak(it.en);
+  const box=$("choices"); box.style.display="grid"; box.innerHTML="";
+  shuffle([it.a, ...it.d]).forEach(opt=>{ const b=document.createElement("button"); b.className="choice subj"; b.textContent=opt; b.onclick=()=>answerChosen(b,opt===it.a,it.a); box.appendChild(b); });
+  startTimer();
+}
+
 const MONSTERS = [
   { name:"スライム", sprite:"🟢", art:"slime",  hp:5,  atk:1, chance:.12, atkIcon:"💧" },
   { name:"コウモリ", sprite:"🦇", art:"bat",    hp:7,  atk:1, chance:.30, atkIcon:"🌀" },
@@ -1874,7 +2318,8 @@ const SHOP_ITEMS = [
 /* ===== セーブ ===== */
 const SAVE_KEY = "kanjiQuestSave_v2";
 let save = loadSave();
-function defaultSave(){ return { coins:0, owned:["hero"], equipped:"hero", skills:["punch"], skillEquipped:"punch", items:{hp:0,atk:0,luck:0,charge:0}, clears:0, bossDefeated:false, secretDefeated:false }; }
+function defaultSave(){ return { coins:0, owned:["hero"], equipped:"hero", skills:["punch"], skillEquipped:"punch", items:{hp:0,atk:0,luck:0,charge:0}, clears:0, bossDefeated:false, secretDefeated:false, log:{} }; }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function loadSave(){
   try{
     const raw=localStorage.getItem(SAVE_KEY); if(!raw) return defaultSave();
@@ -1928,7 +2373,33 @@ const state = {
   locked:false, skillBusy:false, timerId:null, timeLeft:0, timeDur:10,
 };
 const $ = id => document.getElementById(id);
-const screens = { title:$("screen-title"), battle:$("screen-battle"), result:$("screen-result"), shop:$("screen-shop") };
+const screens = { title:$("screen-title"), battle:$("screen-battle"), result:$("screen-result"), shop:$("screen-shop"), stickers:$("screen-stickers") };
+const SUBJECT_ICON = { kanji:"📖", math:"🔢", english:"🔤", science:"🔬", social:"🌏" };
+const SUBJECT_NAME = { kanji:"かんじ", math:"さんすう", english:"えいご", science:"りか", social:"しゃかい" };
+function renderStickers(){
+  refreshCoinHud();
+  const log = save.log||{};
+  const days = Object.keys(log).sort().reverse();
+  // 合計（科目別）
+  const tot={}; let grand=0;
+  days.forEach(d=>{ const day=log[d]; for(const k in day){ tot[k]=(tot[k]||0)+day[k]; grand+=day[k]; } });
+  const sumHtml = `<div class="sticker-sum"><div class="ss-total">あつめたシール <b>${grand}</b>まい・${days.length}日 がんばった！</div><div class="ss-row">`
+    + Object.keys(SUBJECT_ICON).map(k=>`<span class="ss-chip">${SUBJECT_ICON[k]} ${SUBJECT_NAME[k]} <b>${tot[k]||0}</b></span>`).join("") + `</div></div>`;
+  $("stickerSummary").innerHTML = sumHtml;
+  const today=todayStr();
+  const list=$("stickerList"); list.innerHTML="";
+  if(!days.length){ list.innerHTML=`<div class="sticker-empty">まだ シールが ありません。<br>あそぶと シールが たまるよ！</div>`; return; }
+  days.slice(0,30).forEach(d=>{
+    const day=log[d]; let stick="";
+    for(const k in day){ const n=day[k]; const show=Math.min(n,12); for(let i=0;i<show;i++) stick+=`<span class="stk">${SUBJECT_ICON[k]}</span>`; if(n>12) stick+=`<span class="stk-more">+${n-12}</span>`; }
+    const md = d.slice(5).replace("-","/");
+    const lbl = d===today ? `きょう (${md})` : md;
+    const card=document.createElement("div"); card.className="sticker-day";
+    card.innerHTML=`<div class="sd-date">${lbl}</div><div class="sd-stickers">${stick}</div>`;
+    list.appendChild(card);
+  });
+}
+function openStickers(){ renderStickers(); show("stickers"); }
 function show(name){ Object.values(screens).forEach(s=>s.classList.remove("active")); screens[name].classList.add("active"); }
 function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -1947,9 +2418,12 @@ function buildGradeButtons(){
 }
 const MATH_TOPIC = { 1:"たし算ひき算", 2:"九九・たし算", 3:"わり算", 4:"小数・かけ算", 5:"小数・わりあい", 6:"分数" };
 function updateGradeLabels(){
-  const math = state.subject==="math";
+  const s=state.subject;
   document.querySelectorAll("#gradeBtns .grade-btn").forEach((b,i)=>{
-    const sub=b.querySelector(".gb-sub"); if(sub) sub.textContent = math ? MATH_TOPIC[i+1] : b.dataset.kanji;
+    const el=b.querySelector(".gb-sub"); if(!el) return; const g=i+1;
+    if(s==="math") el.textContent=MATH_TOPIC[g];
+    else if(s==="kanji") el.textContent=b.dataset.kanji;
+    else el.textContent=GRADE_LABELS[g][1];
   });
 }
 document.querySelectorAll("#modeSeg button").forEach(b=>{ b.onclick=()=>{ document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; const kids=state.mode==="kids"; $("gradeWrap").style.display=kids?"none":"block"; $("kidsStart").style.display=kids?"block":"none"; }; });
@@ -1960,23 +2434,28 @@ $("adultBtn").onclick = ()=>{ SFX.select(); state.mode="easy"; startGame(7); };
 function setSubject(sub){
   state.subject=sub;
   document.querySelectorAll("#subjectSeg button").forEach(x=>x.classList.toggle("sel",x.dataset.subject===sub));
-  const math=sub==="math";
-  $("modeSeg").style.display=math?"none":"flex";
+  const math=sub==="math", kanji=sub==="kanji", english=sub==="english";
+  $("modeSeg").style.display=kanji?"flex":"none";
   $("modeSegMath").style.display=math?"flex":"none";
   $("topicSegMath").style.display=math?"flex":"none";
-  const seg=math?"#modeSegMath":"#modeSeg";
-  document.querySelectorAll(seg+" button").forEach(x=>x.classList.remove("sel"));
-  const easyBtn=document.querySelector(seg+' button[data-mode="easy"]'); if(easyBtn) easyBtn.classList.add("sel");
+  $("modeSegEng").style.display=english?"flex":"none";
+  const seg = math?"#modeSegMath" : english?"#modeSegEng" : kanji?"#modeSeg" : null;
+  if(seg){ document.querySelectorAll(seg+" button").forEach(x=>x.classList.remove("sel"));
+    const easyBtn=document.querySelector(seg+' button[data-mode="easy"]'); if(easyBtn) easyBtn.classList.add("sel"); }
   state.mode="easy";
   document.querySelectorAll("#topicSegMath button").forEach(x=>x.classList.toggle("sel",x.dataset.topic==="calc"));
   state.mathTopic="calc";
   $("gradeWrap").style.display="block"; $("kidsStart").style.display="none";
-  $("adultBtn").style.display = math ? "none" : "block";
+  $("adultBtn").style.display = kanji ? "block" : "none";
+  const hasModes = kanji||math||english;
+  $("modeTitle").style.display = hasModes ? "block" : "none";
+  $("modeNote").style.display = hasModes ? "block" : "none";
   updateGradeLabels();
 }
 document.querySelectorAll("#subjectSeg button").forEach(b=>{ b.onclick=()=>{ SFX.select(); setSubject(b.dataset.subject); }; });
 document.querySelectorAll("#modeSegMath button").forEach(b=>{ b.onclick=()=>{ SFX.select(); document.querySelectorAll("#modeSegMath button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; }; });
 document.querySelectorAll("#topicSegMath button").forEach(b=>{ b.onclick=()=>{ SFX.select(); document.querySelectorAll("#topicSegMath button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mathTopic=b.dataset.topic; }; });
+document.querySelectorAll("#modeSegEng button").forEach(b=>{ b.onclick=()=>{ SFX.select(); document.querySelectorAll("#modeSegEng button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); state.mode=b.dataset.mode; if(state.mode==="listen"){ try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){} } }; });
 $("mpSubmit").onclick = submitMath;
 
 /* ===== 管理者ゲート（幼児モード解禁・パスワード3917／sessionStorageで保持） ===== */
@@ -2009,9 +2488,10 @@ function startGame(grade){
   if(save.bossDefeated) state.stages.push(SECRET_BOSS);   // 解禁後は 裏ボスが 追加
   state.playerMaxHp=baseMaxHp(); state.playerHp=state.playerMaxHp;
   state.atk=baseAtk(); state.gauge=0; state.skillBusy=false;
-  state.pool=shuffle(state.subject==="math"?[1]:(state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade])); state.poolIdx=0;
+  state.pool=shuffle(state.subject==="kanji" ? (state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade]) : [1]); state.poolIdx=0;
   state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0; state.missed=[];
-  state.timeDur = state.grade>=7 ? 8 : (state.mode==="keypad"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
+  { const t=todayStr(); save.log=save.log||{}; save.log[t]=save.log[t]||{}; save.log[t][state.subject]=(save.log[t][state.subject]||0)+1; persist(); }
+  state.timeDur = state.grade>=7 ? 8 : (state.mode==="keypad"||state.mode==="listen"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
   $("playerSprite").innerHTML=avatarSVG(save.equipped,90);
   $("playerLvl").textContent="(攻"+state.atk+")";
   show("battle"); loadStage();
@@ -2170,6 +2650,7 @@ function nextQuestion(){
   const entry=nextEntry(); state.curEntry=entry;
   $("quizArea").style.display="block"; $("nextBtn").style.display="none"; $("afterOrderBtn").style.display="none";
   if(state.subject==="math"){ state.curEntry=null; renderMathQuestion(); return; }
+  if(QBANK[state.subject]){ state.curEntry=null; if(state.subject==="english" && state.mode==="listen") renderListeningQuestion(); else renderSubjectQuestion(); return; }
   if(state.mode==="kids" && state.grade<7){ renderKidsQuestion(entry); return; }
   if(state.mode==="write" && state.grade<7){ renderWriteQuestion(entry); return; }
   if(state.grade>=7){ renderAdultQuestion(); return; }
@@ -2855,6 +3336,8 @@ $("quitBtn").onclick = () => { if(confirm("タイトルにもどる？")){ stopT
 $("backBtn").onclick = () => { refreshCoinHud(); show("title"); };
 $("toShopBtn").onclick = openShop;
 $("shopBackBtn").onclick = () => show("title");
+$("toStickerBtn").onclick = openStickers;
+$("stickerBackBtn").onclick = () => show("title");
 document.querySelectorAll(".shop-tab").forEach(t => t.onclick = () => setShopTab(t.dataset.tab));
 $("resetBtn").onclick = () => { if(confirm("コインや買ったものを ぜんぶ消して さいしょから にしますか？")){ save=defaultSave(); persist(); renderShop(); } };
 window.addEventListener("resize", ()=>{ if(state.mode==="write" && screens.battle.classList.contains("active")) resizePad(); });
