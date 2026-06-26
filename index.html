@@ -186,15 +186,20 @@
   .choice.kids { font-size:34px; padding:22px 6px; }
   .choice.subj { font-size:15px; padding:13px 6px; line-height:1.3; }
   .sticker-sum { background:var(--card); border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 6px 16px rgba(8,10,30,.22); }
-  .ss-total { font-size:14px; font-weight:800; color:var(--ink); text-align:center; margin-bottom:8px; }
-  .ss-total b { color:var(--gold2); font-size:18px; }
-  .ss-row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
-  .ss-chip { background:#f3f4ff; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700; color:#374151; }
-  .ss-chip b { color:var(--accent1); }
-  .sticker-day { background:var(--card); border-radius:14px; padding:10px 12px; box-shadow:0 4px 12px rgba(8,10,30,.18); }
+  .ss-total { font-size:14px; font-weight:800; color:var(--ink); text-align:center; }
+  .ss-total b { color:var(--gold2); font-size:19px; }
+  .album-title { font-size:13px; font-weight:800; color:rgba(255,255,255,.85); margin:10px 2px 8px; }
+  .album-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; background:var(--card); border-radius:16px; padding:12px 10px; box-shadow:0 6px 16px rgba(8,10,30,.22); }
+  .album-cell { position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .album-cell svg { display:block; filter:drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
+  .album-cell.locked svg { filter:grayscale(1); opacity:.22; }
+  .album-cell.locked .album-name { color:#b9c0cc; }
+  .album-name { font-size:9.5px; font-weight:700; color:var(--muted); text-align:center; line-height:1.1; }
+  .album-count { position:absolute; top:-3px; right:6px; background:#ef4444; color:#fff; font-size:9px; font-weight:800; border-radius:999px; padding:1px 5px; box-shadow:0 1px 3px rgba(0,0,0,.3); }
+  .sticker-day { background:var(--card); border-radius:14px; padding:10px 12px; box-shadow:0 4px 12px rgba(8,10,30,.18); margin-bottom:8px; }
   .sd-date { font-size:12px; font-weight:800; color:var(--muted); margin-bottom:6px; }
-  .sd-stickers { display:flex; flex-wrap:wrap; gap:3px; align-items:center; }
-  .stk { font-size:24px; line-height:1.1; filter:drop-shadow(0 1px 1px rgba(0,0,0,.2)); animation:pop .4s backwards; }
+  .sd-stickers { display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .stk-img svg { display:block; filter:drop-shadow(0 1px 2px rgba(0,0,0,.2)); animation:pop .4s backwards; }
   .stk-more { font-size:13px; font-weight:800; color:var(--muted); margin-left:4px; }
   .sticker-empty { text-align:center; color:var(--muted); font-size:14px; padding:30px 10px; line-height:1.8; }
   .seg button[data-mode="kids"].sel { color:#db2777; }
@@ -2374,30 +2379,67 @@ const state = {
 };
 const $ = id => document.getElementById(id);
 const screens = { title:$("screen-title"), battle:$("screen-battle"), result:$("screen-result"), shop:$("screen-shop"), stickers:$("screen-stickers") };
-const SUBJECT_ICON = { kanji:"📖", math:"🔢", english:"🔤", science:"🔬", social:"🌏" };
-const SUBJECT_NAME = { kanji:"かんじ", math:"さんすう", english:"えいご", science:"りか", social:"しゃかい" };
+const SUBJECT_BG = { kanji:["#ffb24d","#f97316"], math:["#6aa0ff","#2563eb"], english:["#56d98a","#16a34a"], science:["#34d9ee","#0891b2"], social:["#fcc44d","#d97706"] };
+const STICKERS = [
+  {id:"k1",subj:"kanji",name:"ふで",draw:`<rect x="26" y="13" width="4.5" height="20" rx="2" fill="#8b5a2b"/><path d="M24.5 31 L31.5 31 L28 44 Z" fill="#222"/>`},
+  {id:"k2",subj:"kanji",name:"えほん",draw:`<path d="M14 21 Q28 17 28 21 L28 40 Q28 36 14 40 Z" fill="#fff"/><path d="M42 21 Q28 17 28 21 L28 40 Q28 36 42 40 Z" fill="#ffe9cf"/><line x1="28" y1="21" x2="28" y2="40" stroke="#c46a1f" stroke-width="2"/>`},
+  {id:"k3",subj:"kanji",name:"まきもの",draw:`<rect x="16" y="22" width="24" height="12" fill="#fff"/><circle cx="16" cy="28" r="6" fill="#d98b3a"/><circle cx="40" cy="28" r="6" fill="#d98b3a"/>`},
+  {id:"k4",subj:"kanji",name:"すみ",draw:`<path d="M28 15 C20 27 22 40 28 40 C34 40 36 27 28 15 Z" fill="#2a2a3a"/><ellipse cx="25" cy="30" rx="2.4" ry="4" fill="#6a6a7a"/>`},
+  {id:"k5",subj:"kanji",name:"パンダ",draw:`<circle cx="28" cy="30" r="13" fill="#fff"/><circle cx="20" cy="20" r="5" fill="#222"/><circle cx="36" cy="20" r="5" fill="#222"/><ellipse cx="22" cy="30" rx="4" ry="5" fill="#222"/><ellipse cx="34" cy="30" rx="4" ry="5" fill="#222"/><circle cx="22" cy="29" r="1.5" fill="#fff"/><circle cx="34" cy="29" r="1.5" fill="#fff"/><circle cx="28" cy="36" r="2" fill="#222"/>`},
+  {id:"k6",subj:"kanji",name:"えんぴつ",draw:`<rect x="23" y="15" width="6" height="20" rx="1" fill="#ffd166"/><path d="M23 35 L29 35 L26 41 Z" fill="#8b5a2b"/><path d="M39 16 l1.3 3.4 3.6 0 -2.9 2.2 1 3.5 -3 -2.1 -3 2.1 1 -3.5 -2.9 -2.2 3.6 0 Z" fill="#fff"/>`},
+  {id:"m1",subj:"math",name:"ものさし",draw:`<rect x="13" y="24" width="30" height="9" rx="1.5" fill="#fff"/><g stroke="#2563eb" stroke-width="1.2"><line x1="18" y1="24" x2="18" y2="29"/><line x1="22" y1="24" x2="22" y2="27"/><line x1="26" y1="24" x2="26" y2="29"/><line x1="30" y1="24" x2="30" y2="27"/><line x1="34" y1="24" x2="34" y2="29"/><line x1="38" y1="24" x2="38" y2="27"/></g>`},
+  {id:"m2",subj:"math",name:"さんかく",draw:`<path d="M16 40 L40 40 L40 18 Z" fill="#fff"/><path d="M34 40 L40 40 L40 34 Z" fill="none" stroke="#2563eb" stroke-width="1.5"/>`},
+  {id:"m3",subj:"math",name:"すうじ",draw:`<text x="28" y="35" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">123</text>`},
+  {id:"m4",subj:"math",name:"けいさん",draw:`<text x="28" y="35" font-size="20" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">＋−</text>`},
+  {id:"m5",subj:"math",name:"かたち",draw:`<circle cx="21" cy="28" r="7" fill="#fff"/><rect x="30" y="22" width="13" height="13" rx="2" fill="#ffd166"/>`},
+  {id:"m6",subj:"math",name:"とけい",draw:`<circle cx="28" cy="28" r="13" fill="#fff"/><line x1="28" y1="28" x2="28" y2="19" stroke="#2563eb" stroke-width="2"/><line x1="28" y1="28" x2="35" y2="28" stroke="#2563eb" stroke-width="2"/><circle cx="28" cy="28" r="1.6" fill="#2563eb"/>`},
+  {id:"e1",subj:"english",name:"ABC",draw:`<text x="28" y="35" font-size="16" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">ABC</text>`},
+  {id:"e2",subj:"english",name:"りんご",draw:`<path d="M28 18 C20 18 18 26 18 30 C18 38 24 42 28 42 C32 42 38 38 38 30 C38 26 36 18 28 18 Z" fill="#e8453a"/><rect x="27" y="13" width="2.5" height="6" fill="#7a4a1f"/><path d="M30 15 q5 -2 6 2 q-5 1 -6 -2" fill="#3fa34d"/><ellipse cx="23" cy="26" rx="3" ry="2" fill="#fff" opacity=".5"/>`},
+  {id:"e3",subj:"english",name:"ちきゅう",draw:`<circle cx="28" cy="28" r="13" fill="#7ec8ff"/><path d="M19 24 q9 3 18 0 M19 32 q9 3 18 0" stroke="#fff" stroke-width="1.3" fill="none"/><path d="M28 15 v26 M22 20 q6 8 0 16 M34 20 q-6 8 0 16" stroke="#fff" stroke-width="1.1" fill="none"/>`},
+  {id:"e4",subj:"english",name:"ねこ",draw:`<circle cx="28" cy="30" r="12" fill="#fff"/><path d="M18 22 L20 14 L26 20 Z" fill="#fff"/><path d="M38 22 L36 14 L30 20 Z" fill="#fff"/><circle cx="24" cy="29" r="2" fill="#222"/><circle cx="32" cy="29" r="2" fill="#222"/><path d="M26 34 q2 2 4 0" stroke="#222" stroke-width="1.5" fill="none"/><circle cx="28" cy="32" r="1.2" fill="#ff8fb0"/>`},
+  {id:"e5",subj:"english",name:"あいさつ",draw:`<rect x="15" y="17" width="26" height="15" rx="6" fill="#fff"/><path d="M22 32 L19 39 L29 32 Z" fill="#fff"/><text x="28" y="28" font-size="9" font-weight="800" text-anchor="middle" fill="#16a34a" font-family="sans-serif">Hi!</text>`},
+  {id:"e6",subj:"english",name:"ほし",draw:`<path d="M28 14 l3.8 9.6 10.3 0.4 -8 6.6 2.8 9.9 -8.9 -5.6 -8.9 5.6 2.8 -9.9 -8 -6.6 10.3 -0.4 Z" fill="#fff"/>`},
+  {id:"s1",subj:"science",name:"しけんかん",draw:`<path d="M24 15 L24 36 a4 4 0 0 0 8 0 L32 15 Z" fill="#fff"/><path d="M24 28 L32 28 L32 36 a4 4 0 0 1 -8 0 Z" fill="#ff8fb0"/><rect x="22" y="13" width="12" height="3" rx="1.5" fill="#fff"/>`},
+  {id:"s2",subj:"science",name:"じしゃく",draw:`<path d="M19 16 v12 a9 9 0 0 0 18 0 v-12 h-6 v12 a3 3 0 0 1 -6 0 v-12 Z" fill="#e2403a"/><rect x="19" y="13" width="6" height="4" fill="#cdd6ff"/><rect x="31" y="13" width="6" height="4" fill="#cdd6ff"/>`},
+  {id:"s3",subj:"science",name:"はっぱ",draw:`<path d="M18 38 C18 22 38 18 40 18 C40 38 22 40 18 38 Z" fill="#5fc46e"/><path d="M20 36 Q30 28 38 20" stroke="#2e7d32" stroke-width="1.5" fill="none"/>`},
+  {id:"s4",subj:"science",name:"カエル",draw:`<ellipse cx="28" cy="33" rx="13" ry="9" fill="#6cc24a"/><circle cx="21" cy="23" r="5" fill="#6cc24a"/><circle cx="35" cy="23" r="5" fill="#6cc24a"/><circle cx="21" cy="23" r="2.4" fill="#fff"/><circle cx="35" cy="23" r="2.4" fill="#fff"/><circle cx="21" cy="23.5" r="1.2" fill="#222"/><circle cx="35" cy="23.5" r="1.2" fill="#222"/><path d="M23 35 q5 4 10 0" stroke="#2e7d32" stroke-width="1.5" fill="none"/>`},
+  {id:"s5",subj:"science",name:"わくせい",draw:`<circle cx="28" cy="28" r="9" fill="#ffd166"/><ellipse cx="28" cy="28" rx="16" ry="5" fill="none" stroke="#fff" stroke-width="2.5" transform="rotate(-20 28 28)"/>`},
+  {id:"s6",subj:"science",name:"フラスコ",draw:`<path d="M25 14 L25 23 L18 37 a3 3 0 0 0 3 4.5 L35 41.5 a3 3 0 0 0 3 -4.5 L31 23 L31 14 Z" fill="#fff"/><path d="M22 31 L34 31 L36.5 36 a3 3 0 0 1 -3 4.5 L22.5 40.5 a3 3 0 0 1 -3 -4.5 Z" fill="#7ec8ff"/><rect x="24" y="12" width="8" height="3" rx="1.5" fill="#fff"/>`},
+  {id:"c1",subj:"social",name:"ちず",draw:`<path d="M16 20 L26 17 L36 20 L42 17 L42 36 L36 39 L26 36 L16 39 Z" fill="#fff"/><line x1="26" y1="17" x2="26" y2="36" stroke="#d98b3a" stroke-width="1.2"/><line x1="36" y1="20" x2="36" y2="39" stroke="#d98b3a" stroke-width="1.2"/><circle cx="31" cy="28" r="2.2" fill="#e2403a"/>`},
+  {id:"c2",subj:"social",name:"おしろ",draw:`<rect x="18" y="26" width="20" height="16" fill="#fff"/><path d="M18 26 L18 20 L22 20 L22 24 L26 24 L26 20 L30 20 L30 24 L34 24 L34 20 L38 20 L38 26 Z" fill="#fff"/><rect x="25" y="33" width="6" height="9" rx="3" fill="#d98b3a"/>`},
+  {id:"c3",subj:"social",name:"でんしゃ",draw:`<rect x="16" y="20" width="24" height="15" rx="4" fill="#fff"/><rect x="19" y="23" width="7" height="6" rx="1" fill="#7ec8ff"/><rect x="30" y="23" width="7" height="6" rx="1" fill="#7ec8ff"/><circle cx="22" cy="37" r="3" fill="#333"/><circle cx="34" cy="37" r="3" fill="#333"/>`},
+  {id:"c4",subj:"social",name:"てがみ",draw:`<rect x="16" y="21" width="24" height="15" rx="2" fill="#fff"/><path d="M16 22 L28 31 L40 22" stroke="#d98b3a" stroke-width="1.6" fill="none"/>`},
+  {id:"c5",subj:"social",name:"ふじさん",draw:`<path d="M13 40 L28 17 L43 40 Z" fill="#5b8cff"/><path d="M21 28 L28 17 L35 28 L31 31 L28 28 L25 31 Z" fill="#fff"/>`},
+  {id:"c6",subj:"social",name:"コンパス",draw:`<circle cx="28" cy="28" r="13" fill="#fff"/><path d="M28 17 L31 28 L28 26 L25 28 Z" fill="#e2403a"/><path d="M28 39 L25 28 L28 30 L31 28 Z" fill="#3b82f6"/><circle cx="28" cy="28" r="1.6" fill="#333"/>`},
+];
+function stickerSVG(s, size){
+  const gid="st_"+s.id, bg=SUBJECT_BG[s.subj];
+  return `<svg viewBox="0 0 56 56" width="${size||44}" height="${size||44}" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="${gid}" cx=".4" cy=".34" r=".75"><stop offset="0" stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/></radialGradient></defs><circle cx="28" cy="28" r="26" fill="url(#${gid})" stroke="#fff" stroke-width="2.5"/>${s.draw}</svg>`;
+}
+function getSticker(id){ return STICKERS.find(s=>s.id===id); }
+function awardSticker(subject){
+  const pool = STICKERS.filter(s=>s.subj===subject); if(!pool.length) return;
+  const s = pickOne(pool); const t=todayStr(); save.log=save.log||{};
+  if(!Array.isArray(save.log[t])) save.log[t]=[];
+  save.log[t].push(s.id); persist();
+}
 function renderStickers(){
   refreshCoinHud();
   const log = save.log||{};
-  const days = Object.keys(log).sort().reverse();
-  // 合計（科目別）
-  const tot={}; let grand=0;
-  days.forEach(d=>{ const day=log[d]; for(const k in day){ tot[k]=(tot[k]||0)+day[k]; grand+=day[k]; } });
-  const sumHtml = `<div class="sticker-sum"><div class="ss-total">あつめたシール <b>${grand}</b>まい・${days.length}日 がんばった！</div><div class="ss-row">`
-    + Object.keys(SUBJECT_ICON).map(k=>`<span class="ss-chip">${SUBJECT_ICON[k]} ${SUBJECT_NAME[k]} <b>${tot[k]||0}</b></span>`).join("") + `</div></div>`;
-  $("stickerSummary").innerHTML = sumHtml;
-  const today=todayStr();
-  const list=$("stickerList"); list.innerHTML="";
-  if(!days.length){ list.innerHTML=`<div class="sticker-empty">まだ シールが ありません。<br>あそぶと シールが たまるよ！</div>`; return; }
-  days.slice(0,30).forEach(d=>{
-    const day=log[d]; let stick="";
-    for(const k in day){ const n=day[k]; const show=Math.min(n,12); for(let i=0;i<show;i++) stick+=`<span class="stk">${SUBJECT_ICON[k]}</span>`; if(n>12) stick+=`<span class="stk-more">+${n-12}</span>`; }
-    const md = d.slice(5).replace("-","/");
-    const lbl = d===today ? `きょう (${md})` : md;
-    const card=document.createElement("div"); card.className="sticker-day";
-    card.innerHTML=`<div class="sd-date">${lbl}</div><div class="sd-stickers">${stick}</div>`;
-    list.appendChild(card);
-  });
+  const days = Object.keys(log).filter(d=>Array.isArray(log[d])).sort().reverse();
+  const album={}; days.forEach(d=>log[d].forEach(id=>{ album[id]=(album[id]||0)+1; }));
+  const collected = STICKERS.filter(s=>album[s.id]).length; let grand=0; for(const id in album) grand+=album[id];
+  $("stickerSummary").innerHTML = `<div class="sticker-sum"><div class="ss-total">シールずかん <b>${collected}</b>/30しゅるい ・ ぜんぶで <b>${grand}</b>まい</div></div>`;
+  let grid="";
+  STICKERS.forEach(s=>{ const n=album[s.id]||0; const locked=n===0;
+    grid+=`<div class="album-cell${locked?' locked':''}">${stickerSVG(s,46)}${n>1?`<span class="album-count">${n}</span>`:""}<div class="album-name">${locked?"？":s.name}</div></div>`; });
+  const today=todayStr(); let daily="";
+  days.slice(0,12).forEach(d=>{ const ids=log[d]; let stk=""; ids.slice(0,12).forEach(id=>{ const s=getSticker(id); if(s) stk+=`<span class="stk-img">${stickerSVG(s,34)}</span>`; });
+    if(ids.length>12) stk+=`<span class="stk-more">+${ids.length-12}</span>`;
+    const md=d.slice(5).replace("-","/"); const lbl=d===today?`きょう (${md})`:md;
+    daily+=`<div class="sticker-day"><div class="sd-date">${lbl}（${ids.length}まい）</div><div class="sd-stickers">${stk}</div></div>`; });
+  $("stickerList").innerHTML = `<div class="album-title">📒 ずかん（あつめた シール）</div><div class="album-grid">${grid}</div>`
+    + (daily ? `<div class="album-title">📅 まいにちの きろく</div>${daily}` : `<div class="sticker-empty">あそぶと シールが もらえるよ！<br>科目ごとに ちがう シールが でるよ</div>`);
 }
 function openStickers(){ renderStickers(); show("stickers"); }
 function show(name){ Object.values(screens).forEach(s=>s.classList.remove("active")); screens[name].classList.add("active"); }
@@ -2490,7 +2532,7 @@ function startGame(grade){
   state.atk=baseAtk(); state.gauge=0; state.skillBusy=false;
   state.pool=shuffle(state.subject==="kanji" ? (state.mode==="kids"?KIDS_DATA:KANJI_DATA[grade]) : [1]); state.poolIdx=0;
   state.correct=0; state.total=0; state.earned=0; state.combo=0; state.maxCombo=0; state.poison=0; state.missed=[];
-  { const t=todayStr(); save.log=save.log||{}; save.log[t]=save.log[t]||{}; save.log[t][state.subject]=(save.log[t][state.subject]||0)+1; persist(); }
+  awardSticker(state.subject);
   state.timeDur = state.grade>=7 ? 8 : (state.mode==="keypad"||state.mode==="listen"?0 : state.mode==="easy"?14 : state.mode==="hard"?9 : 0);
   $("playerSprite").innerHTML=avatarSVG(save.equipped,90);
   $("playerLvl").textContent="(攻"+state.atk+")";
